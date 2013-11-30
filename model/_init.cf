@@ -175,10 +175,10 @@ implementation replicaSetImpl:
         	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
 	script = std::File(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
-        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
+        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = replicateSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
 	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile])
@@ -186,10 +186,10 @@ end
 
 implementation configServerImpl:
 	script = std::File(host = server.host, path = "/usr/bin/mongodb-configserver",
-        	content = file("mongodb/mongodb-configserver"), owner="root", group="root", mode=644, reload = true)
+        	content = file("mongodb/mongodb-configserver"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-configserver.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-configserver.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-configserver.service"), reload = true)
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-configserver.conf",
         	content = template("mongodb/configServerConfig.tmpl"), reload = true)
@@ -200,10 +200,10 @@ end
 
 implementation accessServerImpl:
 	script = std::File(host = server.host, path = "/usr/bin/mongodb-accessserver",
-        	content = file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=644, reload = true)
+        	content = file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-accessserver.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-accessserver.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-accessserver.service"), reload = true)
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-accessserver.conf",
         	content = template("mongodb/mongodb-accessserver.tmpl"), reload = true)
@@ -220,10 +220,10 @@ implementation shardClusterImpl:
         	content = template("mongodb/mongodb-shardednodes-replica.conf.tmpl"), reload = true)
 	
 	scriptNodes = std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardednodes",
-        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
+        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileNodes = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardednodes.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
 	serviceRunNodes = std::Service(host = shardController.host.host, name = "mongodb-shardednodes", state = "running", onboot = true,
 		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes])
@@ -235,10 +235,10 @@ implementation shardClusterImpl:
         	content = template("mongodb/mongodb-shardeddatabasse.conf.tmpl"), reload = true)
 	
 	scriptDatabase =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
-        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
+        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileDatabase = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardeddatabases.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
 	
 	serviceRunDatabase = std::Service(host = shardController.host.host, name = "mongodb-shardeddatabases", state = "running", onboot = true,
 		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase])
@@ -250,10 +250,10 @@ implementation shardClusterImpl:
         	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
 	
 	scriptCollection =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardedcollections",
-        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
+        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileCollection = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardedcollections.service", owner = "root",
-		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
 	
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
 		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
