@@ -93,7 +93,7 @@ cat /tmp/mongodbsharded/collections-input.in | mongo --host {{ shardController.a
 
 if [[ "$changed" == "Changed" ]]
     then
-    /usr/bin/mongodb-shardeddatabases | at now + 1 min
+    /usr/bin/mongodb-shardedcollections | at now + 1 min
 fi
 
 rm -f /tmp/mongodbsharded/collections-status.in

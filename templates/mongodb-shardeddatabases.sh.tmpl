@@ -12,7 +12,7 @@ rm -f /tmp/mongodbsharded/database-input.in
 echo "sh.status()" >> /tmp/mongodbsharded/database-status.in
 
 
-cat /tmp/mongodbsharded/database-status.in | mongo --host {{ shardController.accessServer.server.host.ip }}:{{ shardController.accessServer.port }} >> /tmp/mongodbsharded/database-status.out
+cat /tmp/mongodbsharded/database-status.in | mongo --host {{ shardController.accessServer.server.host.ip }}:{{ shardController.accessServer.port }} >> /tmp/mongodbsharded/database-status-temp.out
 #cat /tmp/mongodbsharded/database-status.in | mongo >> /tmp/mongodbsharded/database-status-temp.out
 
 # Cut the page to the needed size
