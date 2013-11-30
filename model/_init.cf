@@ -146,15 +146,15 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 implementation hostImp:
 	pkg = 	std::Package(host = host, name = "mongodb", state = "installed")
 	
-	atPkg = 	std::Package(host = replicateSetController.host, name = "at", state = "installed")
-	atService = std::Service(host = replicateSetController.host, name = "atd", state = "running", onboot = true)
+	atPkg = 	std::Package(host = host, name = "at", state = "installed")
+	atService = std::Service(host = host, name = "atd", state = "running", onboot = true)
 end
 
 implementation serverImp: 
 	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed")
 	
     serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
-    serviceRun.requires = [pkg, pkg2]
+    serviceRun.requires = [pkg2]
 end
 
 
