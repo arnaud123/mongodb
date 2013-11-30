@@ -8,11 +8,11 @@
                 {%- else -%}
                     ,
                 {%- endif -%}
-                {{key.name}}: 
+                "{{key.name}}": 
                     {%- if key.isNumeric -%}
                         {{key.valueNumber}}
                     {%- else -%}
-                        {{key.valueString}}
+                        "{{key.valueString}}"
                     {%- endif -%}
             {%-endfor -%}
             
