@@ -112,8 +112,8 @@ MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode co
 	MongoDB host [1] -- [0:1] MongoDBConfigServer configServer
 	MongoDB host [1] -- [0:1] MongoDBAccessServer accessServer
 	
-	MongoDB host [1] -- [0:] MongoDBReplicateSetController replicateSetControllers
-	MongoDB host [1] -- [0:] MongoDBShardController shardControllers
+	MongoDB host [1] -- [0:1] MongoDBReplicateSetController replicateSetControllers
+	MongoDB host [1] -- [0:1] MongoDBShardController shardControllers
 
 """ip::Host host [1] -- [0:1] MongoDBNode node 
 ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController """
@@ -152,8 +152,6 @@ end
 
 implementation serverImp: 
 	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed")
-	
-	configFile = std::File[host=host, path = "/etc/mongodb.conf", purge = true]
 	
     serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
     serviceRun.requires = [pkg2]
@@ -215,7 +213,7 @@ implementation accessServerImpl:
 end
 
 implementation shardClusterImpl:
-	scriptNodesConfigSingle = std::F(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
+	scriptNodesConfigSingle = std::File(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
         	content = template("mongodb/mongodb-shardednodes-single.conf.tmpl"), reload = true)
 	
 	scriptNodesConfigReplica = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-replica.conf",
