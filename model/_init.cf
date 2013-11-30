@@ -192,7 +192,7 @@ implementation configServerImpl:
 		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-configserver.service"), reload = true)
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-configserver.conf",
-        	content = template("mongodb/configServerConfig.tmpl"), reload = true)
+        	content = template("mongodb/mongodb-configserver.tmpl"), reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile, configFile])
