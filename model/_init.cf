@@ -161,7 +161,7 @@ end
 implementation nodeImpNonR:
 	"""TODO require in orde maken... """
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-        	content = template("mongodb/mongodb-node-single.tmpl"), requires=[std::Entity[host = server.host, name = "mongod"]])  
+        	content = template("mongodb/mongodb-node-single.tmpl"))  
 end
 
 implementation nodeImpR:
