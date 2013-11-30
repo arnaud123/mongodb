@@ -73,8 +73,8 @@ end
 entity MongoDBKey:
 	string name
 	bool isNumeric = false
-	string valueString
-	number valueNumber
+	string valueString = ""
+	number valueNumber = 0
 end
 
 

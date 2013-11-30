@@ -44,4 +44,7 @@ access3 = mongodb::MongoDBAccessServer(host=mongo4, server= mongo4Server, shardC
 
 config1 = mongodb::MongoDBConfigServer(host=mongo2, server= mongo2Server, shardCluster = cluster)
 
+database1 = mongodb::MongoDBDatabase(name="testdb", shardCluster = cluster)
+collection1 = mongodb::MongoDBCollection(name="testcol", database = database1)
+key1 = mongodb::MongoDBKey(name = "_id", valueString = "hashed")
 
