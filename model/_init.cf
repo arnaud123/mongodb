@@ -109,7 +109,7 @@ MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode co
 	MongoDBServer server [1] -- [0:1] MongoDBAccessServer accessServer
 	
 	MongoDB host [1] -- [0:1] MongoDBNode node
-	MongoDB host [1] -- [0:1] MongoConfigServer configServer
+	MongoDB host [1] -- [0:1] MongoDBConfigServer configServer
 	MongoDB host [1] -- [0:1] MongoDBAccessServer accessServer
 	
 	MongoDB host [1] -- [0:] MongoDBReplicateSetController replicateSetControllers
