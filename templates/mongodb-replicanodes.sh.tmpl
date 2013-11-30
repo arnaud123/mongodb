@@ -6,7 +6,7 @@ mkdir -p /tmp/mongodbreplica
 rm -f /tmp/mongodbreplica/replica-status.out
 rm -f /tmp/mongodbreplica/replica-input.in
 
-mongo --host {{ replicateSetController.connectingNode.server.host.ip }}:{{ replicateSetController.connectingNode.port }} --eval "printjson(rs.status())" >> /tmp/mongodbreplica/replica-status.out
+mongo --host {{ replicateSetController.connectingNode.server.host.ip }}  -- port {{ replicateSetController.connectingNode.port }} --eval "printjson(rs.status())" >> /tmp/mongodbreplica/replica-status.out
 
 if grep -F -q "\"startupStatus\" : 3," /tmp/mongodbreplica/replica-status.out
 then    
@@ -23,7 +23,7 @@ then
         
     query+="]})"
     echo -e "$query" >> /tmp/mongodbreplica/replica-input.in
-    cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.host.ip }} --port {{ replicateSetController.connectingNode.port }}
+    cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.host.ip }} -- port {{ replicateSetController.connectingNode.port }}
     changed="Changed"
 
 elif grep -F -q "\"set\" : \"{{ name }}\"," /tmp/mongodbreplica/replica-status.out
@@ -79,7 +79,7 @@ then
    echo "---------------------------------"
    echo ""
    
-   cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.server.host.ip }}:{{ replicateSetController.connectingNode.port }}
+   cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.server.host.ip }} -- port {{ replicateSetController.connectingNode.port }}
 else
     changed="Changed" 
 fi       
