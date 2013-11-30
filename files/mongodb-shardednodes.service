@@ -1,0 +1,11 @@
+[Unit]
+Description=MongoDB sharded nodes update
+
+[Service]
+Type=simple
+User=root
+
+ExecStart=/usr/bin/mongodb-shardednodes
+
+[Install]
+WantedBy=multi-user.target

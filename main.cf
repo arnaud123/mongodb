@@ -1,0 +1,10 @@
+# define the machine we want to deploy on
+vm1 = ip::Host(name = "vm-1", os = "fedora-18", ip = "172.16.32.28")
+vm2 = ip::Host(name = "vm-2", os = "fedora-18", ip = "172.16.32.27")
+
+mongo1 = mongodb::MongoDBNode(host=vm1)
+mongo2 = mongodb::MongoDBNode(host=vm2)
+
+set = mongodb::MongoDBReplicateSet(name="repl1", nodes = [mongo1, mongo2])
+controller = mongodb::MongoDBReplicateSetController(host=vm1, replicateSet = set, connectingNode = mongo1)
+

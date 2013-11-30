@@ -1,0 +1,5 @@
+#!/bin/bash
+
+mkdir -p /var/lib/mongodbconfig
+
+/usr/bin/mongod --quiet -f /etc/mongodb-configserver.conf

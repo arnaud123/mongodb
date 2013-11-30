@@ -1,0 +1,9 @@
+port = {{ port }}
+fork = true
+configdb = {%for node in shardCluster.configServers -%}
+                {{ node.server.host.ip }}:{{ node.port }} 
+                    {%- if !loop.last -%} 
+                        {{ ','}} 
+                    {%- endif -%}
+            {%- endfor %}
+logpath = /var/log/mongodb/mongodb-access.log

@@ -1,0 +1,11 @@
+[Unit]
+Description=MongoDB access-server start
+
+[Service]
+Type=simple
+User=mongodb
+
+ExecStart=/usr/bin/mongodb-accessserver
+
+[Install]
+WantedBy=multi-user.target

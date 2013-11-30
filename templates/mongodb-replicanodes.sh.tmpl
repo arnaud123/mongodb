@@ -1,0 +1,93 @@
+#!/bin/bash
+changed="NOT"
+#TODO: how to remove the old database?
+mkdir -p /tmp/mongodbreplica
+
+rm -f /tmp/mongodbreplica/replica-status.out
+rm -f /tmp/mongodbreplica/replica-input.in
+
+mongo --host {{ replicateSetController.connectingNode.server.host.ip }} --port {{ replicateSetController.connectingNode.port }} --eval "printjson(rs.status())" >> /tmp/mongodbreplica/replica-status.out
+
+if grep -F -q "\"startupStatus\" : 3," /tmp/mongodbreplica/replica-status.out
+then    
+   ## Initializing
+   echo "---------------------------------"
+   echo "Initialization"
+   
+    rm -f /tmp/mongodbreplica/replica-input.in
+    query="rs.initiate({ _id : \"testr0\", members : ["
+    while IFS=: read idNumber hostIP hostPort
+        do
+            query+="{_id : $idNumber, host : \"$hostIP:$hostPort\"},"
+        done < /etc/mongodb-replicanodes.conf
+        
+    query+="]})"
+    echo -e "$query" >> /tmp/mongodbreplica/replica-input.in
+    cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.host.ip }} --port {{ replicateSetController.connectingNode.port }}
+    changed="Changed"
+
+elif grep -F -q "\"set\" : \"{{ name }}\"," /tmp/mongodbreplica/replica-status.out
+then
+    rm -f /tmp/mongodbreplica/replica-input.in
+    
+    ## Remove all the old ones
+   echo "---------------------------------"
+   echo "Removing the old nodes"
+   searchString="\"name\" : "
+   while IFS=: read line
+        do
+            if [[ "$line" == *"$searchString"* ]]
+            then
+                #echo "$line"
+                start=`expr index "$line" "$searchString"`
+                firstCut=${line:start+9}
+                #echo "$firstCut"
+                end=`expr index "$firstCut" "$endString"`
+                hostAndPort=${firstCut:0:end-2}
+                #echo "$hostAndPort"
+                
+                if grep -F -q "$hostAndPort" /etc/mongodb-replicanodes.conf
+                then
+                    echo "Host still included: $hostAndPort"
+                
+                else
+                    echo "Host not anymore included: $hostAndPort"
+                    echo "rs.remove(\"$hostAndPort\")" >> /tmp/mongodbreplica/replica-input.in
+                    changed="Changed"
+                fi
+            fi
+        done < /tmp/mongodbreplica/replica-status.out
+        
+   echo "---------------------------------"
+   echo ""
+
+   ## Adding all the new ones
+   echo "---------------------------------"
+   echo "Looking up the new hosts"
+   while IFS=: read idNumber hostIP hostPort
+        do
+            
+            if grep -F -q "\"name\" : \"$hostIP:$hostPort\"" /tmp/mongodbreplica/replica-status.out 
+            then
+                echo "Host already included: $hostIP:$hostPort"
+            else
+                echo "Host not yet included: $hostIP:$hostPort"
+                echo "rs.add(\"$hostIP:$hostPort\")" >> /tmp/mongodbreplica/replica-input.in
+                changed="Changed"
+            fi
+        done < /etc/mongodb-replicanodes.conf
+   echo "---------------------------------"
+   echo ""
+   
+   cat /tmp/mongodbreplica/replica-input.in | mongo --host {{ replicateSetController.connectingNode.server.host.ip }} --port {{ replicateSetController.connectingNode.port }}
+else
+    changed="Changed" 
+fi       
+
+if [[ "$changed" == "Changed" ]]
+    then
+    echo /usr/bin/mongodb-shardednodes | at now + 2 min
+fi
+
+rm -f /tmp/mongodbreplica/replica-status.out
+rm -f /tmp/mongodbreplica/replica-input.in

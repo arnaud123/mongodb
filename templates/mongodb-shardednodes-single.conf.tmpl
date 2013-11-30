@@ -1,0 +1,4 @@
+{% for node in singleNodes -%}
+    {{ node.server.host.ip }}:{{ node.port }} {{ '
+' }}
+{%- endfor %}

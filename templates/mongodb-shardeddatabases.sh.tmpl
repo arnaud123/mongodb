@@ -1,0 +1,101 @@
+#!/bin/bash
+
+changed="Not"
+#TODO: how to remove the old database?
+mkdir -p /tmp/mongodbsharded
+
+rm -f /tmp/mongodbsharded/database-status.in
+rm -f /tmp/mongodbsharded/database-status.out
+rm -f /tmp/mongodbsharded/database-status-temp.out
+rm -f /tmp/mongodbsharded/database-input.in
+
+echo "sh.status()" >> /tmp/mongodbsharded/database-status.in
+
+
+cat /tmp/mongodbsharded/database-status.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }} >> /tmp/mongodbsharded/database-status.out
+#cat /tmp/mongodbsharded/database-status.in | mongo >> /tmp/mongodbsharded/database-status-temp.out
+
+# Cut the page to the needed size
+seenDatabase="false"
+
+while IFS=: read line
+     do
+         if [[ "$seenDatabase" == "true" ]]
+         then
+            echo "$line" >> /tmp/mongodbsharded/database-status.out
+         elif [[ "$line" == *"  databases"* ]]
+         then
+             seenDatabase="true"
+         fi
+     done < /tmp/mongodbsharded/database-status-temp.out
+     
+     
+
+echo "use admin" >> /tmp/mongodbsharded/database-input.in
+    
+: <<'END'
+## Remove all the old ones
+echo "---------------------------------"
+echo "Removing the old databases"
+searchString="\"_id\" : \""
+while IFS=: read line
+     do
+         if [[ "$line" == *"$searchString"* ]]
+         then
+             #echo "$line"
+             start=`expr index "$line" "$searchString"`
+             firstCut=${line:start+10}
+             #echo "$firstCut"
+             end=`expr index "$firstCut" "\""`
+             database=${firstCut:0:end-1}
+             
+            if [[ "$database" == "admin" ]]
+                then
+                echo "Database admin is always included"
+            elif grep -F -q "$database" /etc/mongodb-shardeddatabases.conf
+                then
+                echo "Database still included: $database"
+             
+            else
+                echo "Database not anymore included: $database: Not supported"
+                #echo "sh.enableSharding(\"$database\") >> /tmp/mongodbsharded/database-input.in
+                #changed = "Changed"
+            fi
+         fi
+     done < /tmp/mongodbsharded/database-status.out
+     
+echo "---------------------------------"
+echo ""
+END
+
+## Adding all the new ones
+echo "---------------------------------"
+echo "Looking up the new databases"
+while IFS=: read database
+     do
+         
+         if grep -F -q "\"_id\" : \"$database\",  \"partitioned\" : true" /tmp/mongodbsharded/database-status.out 
+         then
+             echo "Database already included: $database"
+         else
+             echo "Database not yet included: $database"
+             echo "sh.enableSharding(\"$database\")" >> /tmp/mongodbsharded/database-input.in
+             changed="Changed"
+         fi
+     done < /etc/mongodb-shardeddatabases.conf
+echo "---------------------------------"
+echo ""
+
+cat /tmp/mongodbsharded/database-input.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }}
+#cat /tmp/mongodbsharded/database-input.in | mongo
+    
+
+if [[ "$changed" == "Changed" ]]
+    then
+    /usr/bin/mongodb-shardeddatabases | at now + 1 min
+fi
+
+rm -f /tmp/mongodbsharded/database-status.in
+rm -f /tmp/mongodbsharded/database-status.out
+rm -f /tmp/mongodbsharded/database-status-temp.out
+rm -f /tmp/mongodbsharded/database-input.in

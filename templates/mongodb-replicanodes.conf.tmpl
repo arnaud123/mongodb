@@ -1,0 +1,5 @@
+{% for node in nodes -%}
+    {{ loop.index0 }}:{{ node.server.host.ip }}:{{ node.server.port }} {{ '
+' }}
+    
+{%- endfor %}

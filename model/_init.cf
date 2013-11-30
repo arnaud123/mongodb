@@ -1,0 +1,262 @@
+entity MongoDBNode:
+	"""
+		This is a database node
+	"""
+	string port = "27018"
+end
+
+entity MongoDBReplicateSet:
+	"""
+		This contains a set of database nodes and gives higher availibility 
+	"""
+	string name
+end
+
+entity MongoDBReplicateSetController:
+	"""
+		This is the controller of a replica set
+	"""
+end
+
+entity MongoDBConfigServer:
+	"""
+		This is a config server from mongodb
+	"""
+	string port = "27019"
+end
+
+entity MongoDBAccessServer:
+	"""
+		This is a node to access to server
+	"""
+	string port = "27017"
+end
+
+entity MongoDBShardCluster:
+	"""
+		This is for sharding the data.
+	"""
+end
+
+entity MongoDBShardController:
+	"""
+		This is the controller of a sharding set
+	"""
+end
+
+entity MongoDB extends ip::services::Server:
+	"""
+		This is for having the mongo commands
+	"""
+end
+
+entity MongoDBServer extends ip::services::Server:
+	"""
+		This is for having the mongodbserver
+	"""
+end
+
+entity MongoDBDatabase:
+	"""
+		Before you can shard a collection, you must enable sharding for the collections database. 
+		Enabling sharding for a database does not redistribute data but make it possible to shard the collections in that database.
+	"""
+	string name
+end
+
+
+entity MongoDBCollection: 
+	string name
+	bool isSharded = true
+end
+
+entity MongoDBKey:
+	string name
+	bool isNumeric = false
+	string valueString
+	number valueNumber
+end
+
+
+""" REPLICATA """
+MongoDBReplicateSet replicateSet [0:1] -- [1:] MongoDBNode nodes
+MongoDBReplicateSet replicateSet [1] -- [1] MongoDBReplicateSetController replicateSetController
+MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode connectingNode
+
+
+""" SHARDING """
+	""" Access and config """
+	MongoDBConfigServer configServers [1:3] -- [1] MongoDBShardCluster shardCluster
+	MongoDBAccessServer accessServers [1:] -- [1] MongoDBShardCluster shardCluster
+
+	""" Nodes """
+	MongoDBShardCluster shardCluster [0:1] -- [0:] MongoDBReplicateSet replicaSets
+	MongoDBShardCluster shardCluster [0:1] -- [0:] MongoDBNode singleNodes 
+	"""Niet aangeraden in productie omgeving weglaten? """
+	
+	
+	MongoDBShardCluster shardCluster [1] -- [1] MongoDBShardController shardController
+	MongoDBShardController shardController [0:1] -- [1] MongoDBAccessServer accessServer
+	
+	""" Databases and co """
+	MongoDBShardCluster shardCluster [1] -- [0:] MongoDBDatabase databases
+	MongoDBDatabase database [1] -- [0:] MongoDBCollection collections
+	MongoDBCollection collection [1] -- [0:] MongoDBKey keys
+	
+""" Getting all the service connections """
+	MongoDBServer server [1] -- [0:1] MongoDBNode node
+	MongoDBServer server [1] -- [0:1] MongoDBConfigServer configServer
+	MongoDBServer server [1] -- [0:1] MongoDBAccessServer accessServer
+	
+	MongoDB host [1] -- [0:1] MongoDBNode node
+	MongoDB host [1] -- [0:1] MongoConfigServer configServer
+	MongoDB host [1] -- [0:1] MongoDBAccessServer accessServer
+	
+	MongoDB host [1] -- [0:] MongoDBReplicateSetController replicateSetControllers
+	MongoDB host [1] -- [0:] MongoDBShardController shardControllers
+
+"""ip::Host host [1] -- [0:1] MongoDBNode node 
+ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController """
+
+
+""" Implementations """
+	implement MongoDB using hostImp
+	implement MongoDBServer using serverImp
+
+	""" Nodes """
+		implement MongoDBNode using nodeImpNonR when isset(replicateSet) == false
+		implement MongoDBNode using nodeImpR when isset(replicateSet) == true
+		
+	""" Set """	
+		implement MongoDBReplicateSet using replicaSetImpl
+		implement MongoDBReplicateSetController using std::none
+		
+	""" Sharding """
+		implement MongoDBConfigServer using configServerImpl
+		implement MongoDBAccessServer using accessServerImpl
+		
+		implement MongoDBShardCluster using shardClusterImpl
+		implement MongoDBShardController using std::none
+		
+	""" Databases """
+		implement MongoDBDatabase using std::none
+		implement MongoDBCollection using std::none
+		implement MongoDBKey using std::none
+		
+implementation hostImp:
+	pkg = 	std::Package(host = host, name = "mongodb", state = "installed")
+	
+	atPkg = 	std::Package(host = replicateSetController.host, name = "at", state = "installed")
+	atService = std::Service(host = replicateSetController.host, name = "atd", state = "running", onboot = true)
+end
+
+implementation serverImp: 
+	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed")
+	
+    serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
+    serviceRun.requires = [pkg, pkg2]
+end
+
+
+implementation nodeImpNonR:
+	"""TODO require in orde maken... """
+	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
+        	content = template("mongodb/mongodb-node-single.tmpl"))  
+end
+
+implementation nodeImpR:
+	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
+       		content = template("mongodb/mongodb-node-replica.tmpl"))    
+
+end
+
+implementation replicaSetImpl:
+	scriptConfig = std::ConfigFile(host = replicateSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
+        	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
+	
+	script = std::ConfigFile(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
+        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), reload = true)
+	
+	serviceFile = std::File(host = replicateSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
+	
+	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
+		requires = [scriptConfig, script, serviceFile])
+end
+
+implementation configServerImpl:
+	script = std::ConfigFile(host = server.host, path = "/usr/bin/mongodb-configserver",
+        	content = file("mongodb/mongodb-configserver"), reload = true)
+	
+	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-configserver.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-configserver.service"), reload = true)
+	
+	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-configserver.conf",
+        	content = template("mongodb/configServerConfig.tmpl"), reload = true)
+	
+	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
+		requires = [scriptConfig, script, serviceFile, configFile])
+end
+
+implementation accessServerImpl:
+	script = std::ConfigFile(host = server.host, path = "/usr/bin/mongodb-accessserver",
+        	content = file("mongodb/mongodb-accessserver"), reload = true)
+	
+	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-accessserver.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-accessserver.service"), reload = true)
+	
+	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-accessserver.conf",
+        	content = template("mongodb/mongodb-accessserver.tmpl"), reload = true)
+	
+	serviceRun = std::Service(host = server.host, name = "mongodb-accessserver", state = "running", onboot = true,
+		requires = [scriptConfig, script, serviceFile])
+end
+
+implementation shardClusterImpl:
+	scriptNodesConfigSingle = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
+        	content = template("mongodb/mongodb-shardednodes-single.conf.tmpl"), reload = true)
+	
+	scriptNodesConfigReplica = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-replica.conf",
+        	content = template("mongodb/mongodb-shardednodes-replica.conf.tmpl"), reload = true)
+	
+	scriptNodes = std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardednodes",
+        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), reload = true)
+	
+	serviceFileNodes = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardednodes.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
+	
+	serviceRunNodes = std::Service(host = shardController.host.host, name = "mongodb-shardednodes", state = "running", onboot = true,
+		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes])
+	
+	
+	
+	
+	scriptDatabaseConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardeddatabases.conf",
+        	content = template("mongodb/mongodb-shardeddatabasse.conf.tmpl"), reload = true)
+	
+	scriptDatabase =  std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
+        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), reload = true)
+	
+	serviceFileDatabase = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardeddatabases.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
+	
+	serviceRunDatabase = std::Service(host = shardController.host.host, name = "mongodb-shardeddatabases", state = "running", onboot = true,
+		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase])
+	
+	
+	
+	
+	scriptCollectionConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardedcollections.conf",
+        	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
+	
+	scriptCollection =  std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardedcollections",
+        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), reload = true)
+	
+	serviceFileCollection = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardedcollections.service", owner = "root",
+		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
+	
+	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
+		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
+	
+end
+

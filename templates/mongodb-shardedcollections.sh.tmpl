@@ -1,0 +1,102 @@
+#!/bin/bash
+
+changed="Not"
+#TODO: how to remove the old database?
+mkdir -p /tmp/mongodbsharded
+
+rm -f /tmp/mongodbsharded/collections-status.in
+rm -f /tmp/mongodbsharded/collections-status.out
+rm -f /tmp/mongodbsharded/collections-status-temp.out
+rm -f /tmp/mongodbsharded/collections-input.in
+
+echo "sh.status()" >> /tmp/mongodbsharded/collections-status.in
+
+
+cat /tmp/mongodbsharded/collections-status.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }} >> /tmp/mongodbsharded/collections-status.out
+#cat /tmp/mongodbsharded/collections-status.in | mongo >> /tmp/mongodbsharded/collections-status-temp.out
+
+# Cut the page to the needed size
+seenDatabase="false"
+
+while IFS=: read line
+     do
+         if [[ "$seenDatabase" == "true" ]]
+         then
+            echo "$line" >> /tmp/mongodbsharded/collections-status.out
+         elif [[ "$line" == *"  databases"* ]]
+         then
+             seenDatabase="true"
+         fi
+     done < /tmp/mongodbsharded/collections-status-temp.out
+     
+     
+
+echo "use admin" >> /tmp/mongodbsharded/collections-input.in
+
+: <<'END'
+## Remove all the old ones
+echo "---------------------------------"
+echo "Removing the old databases"
+searchString="\"_id\" : \""
+while IFS=: read line
+     do
+         if [[ "$line" == *"$searchString"* ]]
+         then
+             #echo "$line"
+             start=`expr index "$line" "$searchString"`
+             firstCut=${line:start+10}
+             #echo "$firstCut"
+             end=`expr index "$firstCut" "\""`
+             database=${firstCut:0:end-1}
+             
+            if [[ "$database" == "admin" ]]
+                then
+                echo "Collection admin is always included"
+            elif grep -F -q "$database" /etc/mongodb-shardedcollections.conf
+                then
+                echo "Collection still included: $database"
+             
+            else
+                echo "Collection not anymore included: $database: Not supported"
+                #echo "sh.enableSharding(\"$database\") >> /tmp/mongodbsharded/collections-input.in
+                #changed = "Changed"
+            fi
+         fi
+     done < /tmp/mongodbsharded/collections-status.out
+     
+echo "---------------------------------"
+echo ""
+END
+
+
+## Adding all the new ones
+echo "---------------------------------"
+echo "Looking up the new collections"
+while IFS=: read collectionname rest
+     do
+         
+         if grep -F -q "$collectionname" /tmp/mongodbsharded/collections-status.out 
+         then
+             echo "Collection already included: $collectionname"
+         else
+             echo "Collection not yet included: $collectionname"
+             echo "sh.shardCollection(\"$collectionname\", $rest)" >> /tmp/mongodbsharded/collections-input.in
+             changed="Changed"
+         fi
+     done < /etc/mongodb-shardedcollections.conf
+echo "---------------------------------"
+echo ""
+
+cat /tmp/mongodbsharded/collections-input.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }}
+#cat /tmp/mongodbsharded/collections-input.in | mongo
+    
+
+if [[ "$changed" == "Changed" ]]
+    then
+    /usr/bin/mongodb-shardeddatabases | at now + 1 min
+fi
+
+rm -f /tmp/mongodbsharded/collections-status.in
+rm -f /tmp/mongodbsharded/collections-status.out
+rm -f /tmp/mongodbsharded/collections-status-temp.out
+rm -f /tmp/mongodbsharded/collections-input.in

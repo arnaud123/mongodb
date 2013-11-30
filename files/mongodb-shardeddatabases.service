@@ -1,0 +1,11 @@
+[Unit]
+Description=MongoDB databases initialisation start
+
+[Service]
+Type=simple
+User=root
+
+ExecStart=/usr/bin/mongodb-shardeddatabases
+
+[Install]
+WantedBy=multi-user.target

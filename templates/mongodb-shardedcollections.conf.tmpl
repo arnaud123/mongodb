@@ -1,0 +1,23 @@
+{% for database in databases -%}
+    {%- for collection in database.collections -%}
+        {%- if collection.isSharded -%}
+            {{ database.name }}.{{ collection.name }}:{{'{'}} 
+            
+            {%- for key in collection.keys-%}
+                {%- if loop.first -%}
+                {%- else -%}
+                    ,
+                {%- endif -%}
+                {{key.name}}: 
+                    {%- if key.isNumeric -%}
+                        {{key.valueNumber}}
+                    {%- else -%}
+                        {{key.valueString}}
+                    {%- endif -%}
+            {%-endfor -%}
+            
+            {{'}
+' }}    
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfor %}

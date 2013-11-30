@@ -1,0 +1,114 @@
+#!/bin/bash
+
+changed="Not"
+#TODO: how to remove the old database?
+mkdir -p /tmp/mongodbsharded
+
+rm -f /tmp/mongodbsharded/shards-status.in
+rm -f /tmp/mongodbsharded/shards-status.out
+rm -f /tmp/mongodbsharded/shards-input.in
+
+echo "use admin" >> /tmp/mongodbsharded/shards-status.in
+echo "db.runCommand({listshards:1})" >> /tmp/mongodbsharded/shards-status.in
+
+
+cat /tmp/mongodbsharded/shards-status.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }} >> /tmp/mongodbsharded/shards-status.out
+#cat /tmp/mongodbsharded/shards-status.in | mongo >> /tmp/mongodbsharded/shards-status.out
+
+
+echo "use admin" >> /tmp/mongodbsharded/shards-input.in
+    
+## Remove all the old ones
+echo "---------------------------------"
+echo "Removing the old nodes"
+searchString="\"host\" : "
+while IFS=: read line
+     do
+         if [[ "$line" == *"$searchString"* ]]
+         then
+             #echo "$line"
+             start=`expr index "$line" "$searchString"`
+             firstCut=${line:start+9}
+             #echo "$firstCut"
+             end=`expr index "$firstCut" "\""`
+             hostAndPort=${firstCut:0:end-1}
+             #echo "$hostAndPort"
+             if [[ "$line" == *"/"* ]]
+                then
+                replicaSetEnd=`expr index "$firstCut" "/"`
+                replica=${hostAndPort:0:replicaSetEnd-1}
+                if grep -F -q "$replica" /etc/mongodb-shardednodes-replica.conf
+                    then
+                    echo "Replica still included: $replica"
+                 
+                else
+                    echo "Replica not anymore included: $replica"
+                    echo "db.runCommand({ removeShard : \"$replica\" })" >> /tmp/mongodbsharded/shards-input.in
+                    echo "db.runCommand({ removeShard : \"$replica\" })" >> /tmp/mongodbsharded/shards-input.in
+                    changed="Changed"
+                fi
+            else
+                if grep -F -q "$hostAndPort" /etc/mongodb-shardednodes-single.conf
+                    then
+                    echo "Host still included: $hostAndPort"
+                 
+                else
+                    echo "Host not anymore included: $hostAndPort"
+                    echo "db.runCommand({ removeShard : \"$hostAndPort\" })" >> /tmp/mongodbsharded/shards-input.in
+                    echo "db.runCommand({ removeShard : \"$hostAndPort\" })" >> /tmp/mongodbsharded/shards-input.in
+                    changed="Changed"
+                fi
+            fi
+         fi
+     done < /tmp/mongodbsharded/shards-status.out
+     
+echo "---------------------------------"
+echo ""
+
+## Adding all the new ones
+echo "---------------------------------"
+echo "Looking up the new hosts - single"
+while IFS=: read hostIP hostPort
+     do
+         
+         if grep -F -q "\"host\" : \"$hostIP:$hostPort\"" /tmp/mongodbsharded/shards-status.out 
+         then
+             echo "Host already included: $hostIP:$hostPort"
+         else
+             echo "Host not yet included: $hostIP:$hostPort"
+             echo "sh.addShard(\"$hostIP:$hostPort\")" >> /tmp/mongodbsharded/shards-input.in
+             changed="Changed"
+         fi
+     done < /etc/mongodb-shardednodes-single.conf
+echo "---------------------------------"
+echo ""
+
+echo "---------------------------------"
+echo "Looking up the new hosts - replica"
+while IFS=: read replica hostIP hostPort
+     do
+         
+         if grep -F -q "\"_id\" : \"$replica\"" /tmp/mongodbsharded/shards-status.out 
+         then
+             echo "Replica already included: $replica/$hostIP:$hostPort"
+         else
+             echo "Replica not yet included: $replica/$hostIP:$hostPort"
+             echo "sh.addShard(\"$replica/$hostIP:$hostPort\")" >> /tmp/mongodbsharded/shards-input.in
+             changed="Changed"
+         fi
+     done < /etc/mongodb-shardednodes-replica.conf
+echo "---------------------------------"
+echo ""
+
+cat /tmp/mongodbsharded/shards-input.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }}
+#cat /tmp/mongodbsharded/shards-input.in | mongo
+    
+
+if [[ "$changed" == "Changed" ]]
+    then
+    echo /usr/bin/mongodb-shardednodes | at now + 5 min
+fi
+
+rm -f /tmp/mongodbsharded/shards-status.in
+rm -f /tmp/mongodbsharded/shards-status.out
+rm -f /tmp/mongodbsharded/shards-input.in

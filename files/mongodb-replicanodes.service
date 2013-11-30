@@ -1,0 +1,11 @@
+[Unit]
+Description=MongoDB replicaset up to date script
+
+[Service]
+Type=simple
+User=root
+
+ExecStart=/usr/bin/mongodb-replicanodes
+
+[Install]
+WantedBy=multi-user.target
