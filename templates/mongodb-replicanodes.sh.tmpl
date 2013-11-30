@@ -15,7 +15,7 @@ then
    echo "Initialization"
    
     rm -f /tmp/mongodbreplica/replica-input.in
-    query="rs.initiate({ _id : \"testr0\", members : ["
+    query="rs.initiate({ _id : \"{{ name }}\", members : ["
     while IFS=: read idNumber hostIP hostPort
         do
             query+="{_id : $idNumber, host : \"$hostIP:$hostPort\"},"
