@@ -46,5 +46,5 @@ config1 = mongodb::MongoDBConfigServer(host=mongo2, server= mongo2Server, shardC
 
 database1 = mongodb::MongoDBDatabase(name="testdb", shardCluster = cluster)
 collection1 = mongodb::MongoDBCollection(name="testcol", database = database1)
-key1 = mongodb::MongoDBKey(name = "_id", valueString = "hashed")
+key1 = mongodb::MongoDBKey(name = "_id", valueString = "hashed", collection = collection1)
 
