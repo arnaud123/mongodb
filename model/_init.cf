@@ -124,8 +124,8 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 	implement MongoDBServer using serverImp
 
 	""" Nodes """
-		implement MongoDBNode using nodeImpNonR when isset(replicateSet) == false
-		implement MongoDBNode using nodeImpR when isset(replicateSet) == true
+		implement MongoDBNode using nodeImpNonR when isset(replicateSet) == true
+		implement MongoDBNode using nodeImpR when isset(replicateSet) == false
 		
 	""" Set """	
 		implement MongoDBReplicateSet using replicaSetImpl
@@ -174,7 +174,7 @@ implementation replicaSetImpl:
 	scriptConfig = std::ConfigFile(host = replicateSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
         	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
-	script = std::ConfigFile(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
+	script = std::File(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
         	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), reload = true)
 	
 	serviceFile = std::File(host = replicateSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
