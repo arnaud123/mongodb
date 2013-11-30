@@ -232,7 +232,7 @@ implementation shardClusterImpl:
 	
 	
 	scriptDatabaseConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardeddatabases.conf",
-        	content = template("mongodb/mongodb-shardeddatabasse.conf.tmpl"), reload = true)
+        	content = template("mongodb/mongodb-shardeddatabases.conf.tmpl"), reload = true)
 	
 	scriptDatabase =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
         	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
