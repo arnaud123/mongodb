@@ -1,1 +1,1 @@
-/usr/bin/mongos -f --quiet /etc/mongodb-accessserver.conf
+/usr/bin/mongos --quiet -f /etc/mongodb-accessserver.conf
