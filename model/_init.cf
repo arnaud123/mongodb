@@ -175,7 +175,7 @@ implementation replicaSetImpl:
         	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
 	script = std::File(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
-        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), reload = true)
+        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFile = std::File(host = replicateSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
@@ -185,8 +185,8 @@ implementation replicaSetImpl:
 end
 
 implementation configServerImpl:
-	script = std::ConfigFile(host = server.host, path = "/usr/bin/mongodb-configserver",
-        	content = file("mongodb/mongodb-configserver"), reload = true)
+	script = std::File(host = server.host, path = "/usr/bin/mongodb-configserver",
+        	content = file("mongodb/mongodb-configserver"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-configserver.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-configserver.service"), reload = true)
@@ -199,8 +199,8 @@ implementation configServerImpl:
 end
 
 implementation accessServerImpl:
-	script = std::ConfigFile(host = server.host, path = "/usr/bin/mongodb-accessserver",
-        	content = file("mongodb/mongodb-accessserver"), reload = true)
+	script = std::File(host = server.host, path = "/usr/bin/mongodb-accessserver",
+        	content = file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-accessserver.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-accessserver.service"), reload = true)
@@ -213,14 +213,14 @@ implementation accessServerImpl:
 end
 
 implementation shardClusterImpl:
-	scriptNodesConfigSingle = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
+	scriptNodesConfigSingle = std::F(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
         	content = template("mongodb/mongodb-shardednodes-single.conf.tmpl"), reload = true)
 	
 	scriptNodesConfigReplica = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-replica.conf",
         	content = template("mongodb/mongodb-shardednodes-replica.conf.tmpl"), reload = true)
 	
-	scriptNodes = std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardednodes",
-        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), reload = true)
+	scriptNodes = std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardednodes",
+        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFileNodes = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardednodes.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
@@ -234,8 +234,8 @@ implementation shardClusterImpl:
 	scriptDatabaseConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardeddatabases.conf",
         	content = template("mongodb/mongodb-shardeddatabasse.conf.tmpl"), reload = true)
 	
-	scriptDatabase =  std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
-        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), reload = true)
+	scriptDatabase =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
+        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFileDatabase = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardeddatabases.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
@@ -249,8 +249,8 @@ implementation shardClusterImpl:
 	scriptCollectionConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardedcollections.conf",
         	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
 	
-	scriptCollection =  std::ConfigFile(host = shardController.host.host, path = "/usr/bin/mongodb-shardedcollections",
-        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), reload = true)
+	scriptCollection =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardedcollections",
+        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), owner="root", group="root", mode=644, reload = true)
 	
 	serviceFileCollection = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardedcollections.service", owner = "root",
 		group = "root", mode = 644, requires = script, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
