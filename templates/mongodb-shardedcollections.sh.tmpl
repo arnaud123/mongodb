@@ -12,7 +12,7 @@ rm -f /tmp/mongodbsharded/collections-input.in
 echo "sh.status()" >> /tmp/mongodbsharded/collections-status.in
 
 
-cat /tmp/mongodbsharded/collections-status.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }} >> /tmp/mongodbsharded/collections-status.out
+cat /tmp/mongodbsharded/collections-status.in | mongo --host {{ shardController.accessServer.server.host.ip }}:{{ shardController.accessServer.port }} >> /tmp/mongodbsharded/collections-status.out
 #cat /tmp/mongodbsharded/collections-status.in | mongo >> /tmp/mongodbsharded/collections-status-temp.out
 
 # Cut the page to the needed size
@@ -87,7 +87,7 @@ while IFS=: read collectionname rest
 echo "---------------------------------"
 echo ""
 
-cat /tmp/mongodbsharded/collections-input.in | mongo --host {{ shardController.accessServer.server.host.ip }} --port {{ shardController.accessServer.port }}
+cat /tmp/mongodbsharded/collections-input.in | mongo --host {{ shardController.accessServer.server.host.ip }}:{{ shardController.accessServer.port }}
 #cat /tmp/mongodbsharded/collections-input.in | mongo
     
 
