@@ -147,7 +147,7 @@ implementation hostImp:
 	pkg = 	std::Package(host = host, name = "mongodb", state = "installed")
 	
 	atPkg = 	std::Package(host = host, name = "at", state = "installed")
-	atService = std::Service(host = host, name = "atd", state = "running", onboot = true)
+	atService = std::Service(host = host, name = "atd", state = "running", onboot = true, requires=atPkg)
 end
 
 implementation serverImp: 
@@ -161,7 +161,7 @@ end
 implementation nodeImpNonR:
 	"""TODO require in orde maken... """
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-        	content = template("mongodb/mongodb-node-single.tmpl"))  
+        	content = template("mongodb/mongodb-node-single.tmpl"), requires=std::Service(host = server.host, name = "mongod"))  
 end
 
 implementation nodeImpR:
