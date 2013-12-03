@@ -156,7 +156,6 @@ end
 
 
 implementation nodeImpNonR:
-	"""TODO require in orde maken... """
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
         	content = template("mongodb/mongodb-node-single.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)  
 	
@@ -185,6 +184,7 @@ implementation replicaSetImpl:
 	
 	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile])
+		"""TODO require in orde maken... """
 end
 
 implementation configServerImpl:
@@ -198,7 +198,7 @@ implementation configServerImpl:
         	content = template("mongodb/mongodb-configserver.tmpl"), reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
-		requires = [scriptConfig, serviceFile, configFile])
+		requires = [scriptConfig, serviceFile, configFile, std::Package[host = server.host, name ="mongodb-server"]])
 end
 
 implementation accessServerImpl:
@@ -212,7 +212,8 @@ implementation accessServerImpl:
         	content = template("mongodb/mongodb-accessserver.tmpl"), reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-accessserver", state = "running", onboot = true,
-		requires = [configFile, scriptConfig, serviceFile])
+		requires = [configFile, scriptConfig, serviceFile, std::Package[host = server.host, name ="mongodb-server"]])
+		"""TODO require in orde maken... """
 end
 
 implementation shardClusterImpl:
@@ -229,7 +230,7 @@ implementation shardClusterImpl:
 		group = "root", mode = 755, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
 	serviceRunNodes = std::Service(host = shardController.host.host, name = "mongodb-shardednodes", state = "running", onboot = true,
-		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes])
+		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes, std::Package[host = shardController.host.host, name ="mongodb"]])
 	
 	
 	
@@ -244,7 +245,7 @@ implementation shardClusterImpl:
 		group = "root", mode = 755, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
 	
 	serviceRunDatabase = std::Service(host = shardController.host.host, name = "mongodb-shardeddatabases", state = "running", onboot = true,
-		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase])
+		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase, std::Package[host = shardController.host.host, name ="mongodb"]])
 	
 	
 	
@@ -259,7 +260,7 @@ implementation shardClusterImpl:
 		group = "root", mode = 755, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
 	
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
-		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
+		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes, std::Package[host = shardController.host.host, name ="mongodb"]])
 	
 end
 
