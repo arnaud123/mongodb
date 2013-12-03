@@ -166,7 +166,7 @@ end
 
 implementation nodeImpR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-       		content = template("mongodb/mongodb-node-replica.tmpl"))    
+       		content = template("mongodb/mongodb-node-replica.tmpl"), requires=std::Package[host = server.host, name ="mongodb"])    
 
 end
 
