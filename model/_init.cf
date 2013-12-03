@@ -154,7 +154,7 @@ implementation serverImp:
 	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed")
 	
     serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
-    serviceRun.requires = [pkg2, std::File[host = host, path = "/etc/mongodb.conf"]]
+    serviceRun.requires = [pkg2, std::entity[host = host, path = "/etc/mongodb.conf"]]
 end
 
 
