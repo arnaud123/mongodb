@@ -173,6 +173,7 @@ implementation nodeImpR:
 end
 
 implementation replicaSetImpl:
+	"""TODO require in orde maken... """
 	scriptConfig = std::ConfigFile(host = replicateSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
         	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
@@ -184,7 +185,7 @@ implementation replicaSetImpl:
 	
 	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile])
-		"""TODO require in orde maken... """
+		
 end
 
 implementation configServerImpl:
@@ -202,6 +203,7 @@ implementation configServerImpl:
 end
 
 implementation accessServerImpl:
+	"""TODO require in orde maken... """
 	scriptConfig = std::File(host = server.host, path = "/usr/bin/mongodb-accessserver",
         	content = file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=755, reload = true)
 	
@@ -213,7 +215,7 @@ implementation accessServerImpl:
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-accessserver", state = "running", onboot = true,
 		requires = [configFile, scriptConfig, serviceFile, std::Package[host = server.host, name ="mongodb-server"]])
-		"""TODO require in orde maken... """
+		
 end
 
 implementation shardClusterImpl:
