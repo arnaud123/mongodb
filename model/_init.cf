@@ -160,7 +160,7 @@ implementation nodeImpNonR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
         	content = template("mongodb/mongodb-node-single.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)  
 	
-	serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
+	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg]
 end
 
@@ -168,7 +168,7 @@ implementation nodeImpR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
        		content = template("mongodb/mongodb-node-replica.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)   
 	
-	serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
+	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg]
 
 end
