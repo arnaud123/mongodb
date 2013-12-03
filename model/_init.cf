@@ -152,9 +152,6 @@ end
 
 implementation serverImp: 
 	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed")
-	
-    serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
-    serviceRun.requires = [pkg2, std::Entity[host = host, path = "/etc/mongodb.conf"]]
 end
 
 
@@ -162,11 +159,17 @@ implementation nodeImpNonR:
 	"""TODO require in orde maken... """
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
         	content = template("mongodb/mongodb-node-single.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)  
+	
+	serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
+	serviceRun.requires = [config_cfg]
 end
 
 implementation nodeImpR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-       		content = template("mongodb/mongodb-node-replica.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)    
+       		content = template("mongodb/mongodb-node-replica.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)   
+	
+	serviceRun = std::Service(host = host, name = "mongod", state = "running", onboot = true)
+	serviceRun.requires = [config_cfg]
 
 end
 
