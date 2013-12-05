@@ -84,9 +84,9 @@ else
     changed="Changed" 
 fi       
 
-if [[ "$changed" == "Changed" ]]
+if [[ "$changed$#" == "Changed0" ]]
     then
-    echo /usr/bin/mongodb-shardednodes | at now + 2 min
+    echo /usr/bin/mongodb-shardednodes 1 | at now + 1 min
 fi
 
 rm -f /tmp/mongodbreplica/replica-status.out

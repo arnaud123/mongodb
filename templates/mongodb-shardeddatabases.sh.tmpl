@@ -90,9 +90,9 @@ cat /tmp/mongodbsharded/database-input.in | mongo --host {{ shardController.acce
 #cat /tmp/mongodbsharded/database-input.in | mongo
     
 
-if [[ "$changed" == "Changed" ]]
+if [[ "$changed$#" == "Changed0" ]]
     then
-    /usr/bin/mongodb-shardeddatabases | at now + 1 min
+    /usr/bin/mongodb-shardeddatabases 1 | at now + 2 min
 fi
 
 rm -f /tmp/mongodbsharded/database-status.in
