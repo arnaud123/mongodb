@@ -186,7 +186,7 @@ implementation replicaSetImpl:
 		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
 	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
-		requires = [scriptConfig, script, serviceFile, std::Package[host = replicateSetController.host.host, name ="mongodb"]])
+		requires = [scriptConfig, script, serviceFile])
 	serviceRun.requires = std::Package[host = replicateSetController.host.host, name ="mongodb"]  
 end
 
