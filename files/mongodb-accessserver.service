@@ -2,7 +2,7 @@
 Description=MongoDB access-server start
 
 [Service]
-Type=simple
+Type=forking
 User=root
 
 ExecStart=/usr/bin/mongodb-accessserver
