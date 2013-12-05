@@ -199,9 +199,11 @@ implementation configServerImpl:
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-configserver.conf",
         	content = template("mongodb/mongodb-configserver.tmpl"), reload = true)
+	
 	dataDirectory = std::Directory(host = server.host, path = "/var/log/mongodbconfig", owner="root", group="root", mode = 755)
+	
 	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
-		requires = [scriptConfig, serviceFile, configFile])
+		requires = [scriptConfig, serviceFile, configFile, directory])
 	serviceRun.requires = std::Package[host = server.host, name ="mongodb-server"]
 end
 
