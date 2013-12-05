@@ -3,7 +3,7 @@ Description=MongoDB access-server start
 
 [Service]
 Type=simple
-User=mongodb
+User=root
 
 ExecStart=/usr/bin/mongodb-accessserver
 

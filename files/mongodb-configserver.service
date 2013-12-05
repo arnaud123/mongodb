@@ -3,7 +3,7 @@ Description=MongoDB config-server start
 
 [Service]
 Type=simple
-User=mongodb
+User=root
 
 ExecStart=/usr/bin/mongod --quiet -f /etc/mongodb-configserver.conf
 
