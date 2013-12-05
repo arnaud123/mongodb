@@ -157,7 +157,8 @@ end
 
 implementation nodeImpNonR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-        	content = template("mongodb/mongodb-node-single.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)  
+        	content = template("mongodb/mongodb-node-single.tmpl"), reload = true)
+	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg]
@@ -165,7 +166,8 @@ end
 
 implementation nodeImpR:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-       		content = template("mongodb/mongodb-node-replica.tmpl"), requires=std::Package[host = server.host, name ="mongodb-server"], reload = true)   
+       		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
+	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg]
@@ -185,7 +187,7 @@ implementation replicaSetImpl:
 	
 	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile, std::Package[host = replicateSetController.host.host, name ="mongodb"]])
-		
+	serviceRun.requires = std::Package[host = replicateSetController.host.host, name ="mongodb"]  
 end
 
 implementation configServerImpl:
@@ -200,6 +202,7 @@ implementation configServerImpl:
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
 		requires = [scriptConfig, serviceFile, configFile])
+	serviceRun.requires = std::Package[host = server.host, name ="mongodb-server"]
 end
 
 implementation accessServerImpl:
@@ -215,7 +218,9 @@ implementation accessServerImpl:
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-accessserver", state = "running", onboot = true,
 		requires = [configFile, scriptConfig, serviceFile])
-		
+	
+	serviceRun.requires = std::Package[host = server.host, name ="mongodb-server"]
+
 end
 
 implementation shardClusterImpl:
@@ -233,7 +238,8 @@ implementation shardClusterImpl:
 	
 	serviceRunNodes = std::Service(host = shardController.host.host, name = "mongodb-shardednodes", state = "running", onboot = true,
 		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes])
-	
+	serviceRunNodes.requires = std::Package[host = shardController.host.host, name ="mongodb"]
+
 	
 	
 	
@@ -248,7 +254,7 @@ implementation shardClusterImpl:
 	
 	serviceRunDatabase = std::Service(host = shardController.host.host, name = "mongodb-shardeddatabases", state = "running", onboot = true,
 		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase])
-	
+	serviceRunDatabase.requires = std::Package[host = shardController.host.host, name ="mongodb"]
 	
 	
 	
@@ -263,6 +269,6 @@ implementation shardClusterImpl:
 	
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
 		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
-	
+	serviceRunCollection.requires = std::Package[host = shardController.host.host, name ="mongodb"]
 end
 
