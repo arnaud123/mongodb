@@ -1,9 +1,9 @@
-vm1 = ip::Host(name = "vm1", os = "fedora-18", ip = "172.16.32.21")
-vm2 = ip::Host(name = "vm2", os = "fedora-18", ip = "172.16.32.24")
-vm3 = ip::Host(name = "vm3", os = "fedora-18", ip = "172.16.32.25")
-vm4 = ip::Host(name = "vm4", os = "fedora-18", ip = "172.16.32.26")
-vm5 = ip::Host(name = "vm5", os = "fedora-18", ip = "172.16.32.27")
-vm6 = ip::Host(name = "vm6", os = "fedora-18", ip = "172.16.32.28")
+vm1 = ip::Host(name = "vmmdb1", os = "fedora-18", ip = "172.16.32.28")
+vm2 = ip::Host(name = "vmmdb2", os = "fedora-18", ip = "172.16.32.29")
+vm3 = ip::Host(name = "vmmdb3", os = "fedora-18", ip = "172.16.32.30")
+vm4 = ip::Host(name = "vmmdb4", os = "fedora-18", ip = "172.16.32.31")
+vm5 = ip::Host(name = "vmmdb5", os = "fedora-18", ip = "172.16.32.33")
+vm6 = ip::Host(name = "vmmdb6", os = "fedora-18", ip = "172.16.32.35")
 
 
 mongo1 = mongodb::MongoDB(host = vm1)
