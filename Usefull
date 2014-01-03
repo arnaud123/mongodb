@@ -1,0 +1,17 @@
+entity MongoTest:
+
+end
+
+Host host -- MongoTest mt
+MongoDB db -- MongoTest mt
+MongoDBServer server -- MongoTest mt
+MongoDBNode node -- MongoTest mt
+
+implementation mongoTest:
+    self.db = mongodb::MongoDB(host = self.host)
+    self.server =  mongodb::MongoDBServer(host=self.host)
+    self.node = mongodb::MongoDBNode(host=self.host, server=self.server)
+end
+
+test1 = MongoTest(host = vm1)
+mongodb::MongoDBAccessServer(host=test1.db, server=test1.server, shardCluster = cluster)

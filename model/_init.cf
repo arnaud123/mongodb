@@ -1,3 +1,9 @@
+entity MongoDBNodeWithServer extends ip::services::Server:
+	"""
+		This is a collection of a node, server and basic mongodb
+	"""
+end
+
 entity MongoDBNode:
 	"""
 		This is a database node
@@ -83,6 +89,9 @@ MongoDBReplicateSet replicateSet [0:1] -- [1:] MongoDBNode nodes
 MongoDBReplicateSet replicateSet [1] -- [1] MongoDBReplicateSetController replicateSetController
 MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode connectingNode
 
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDB mongoDB
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBServer server
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
 
 """ SHARDING """
 	""" Access and config """
@@ -122,10 +131,11 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 """ Implementations """
 	implement MongoDB using hostImp
 	implement MongoDBServer using serverImp
+	implement MongoDBNodeWithServer using collectionImpl
 
 	""" Nodes """
-		implement MongoDBNode using nodeImpNonR when isset(replicateSet) == true
-		implement MongoDBNode using nodeImpR when isset(replicateSet) == false
+		implement MongoDBNode using nodeImpNonR when isset(self.replicateSet) == true
+		implement MongoDBNode using nodeImpR when isset(self.replicateSet) == false
 		
 	""" Set """	
 		implement MongoDBReplicateSet using replicaSetImpl
@@ -143,6 +153,12 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 		implement MongoDBCollection using std::none
 		implement MongoDBKey using std::none
 		
+implementation collectionImpl:
+	mongoDB = mongodb::MongoDB(host = host)
+	server = mongodb::MongoDBServer(host=host)
+	node = mongodb::MongoDBNode(host=mongoDB, server=mongoDBServer)
+end	
+
 implementation hostImp:
 	pkg = 	std::Package(host = host, name = "mongodb", state = "installed")
 	

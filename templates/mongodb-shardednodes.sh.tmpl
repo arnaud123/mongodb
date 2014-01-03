@@ -70,8 +70,7 @@ echo "---------------------------------"
 echo "Looking up the new hosts - single"
 while IFS=: read hostIP hostPort
      do
-         
-         if grep -F -q "\"host\" : \"$hostIP:$hostPort\"" /tmp/mongodbsharded/shards-status.out 
+         if grep -F -q "$hostIP:$hostPort" /tmp/mongodbsharded/shards-status.out 
          then
              echo "Host already included: $hostIP:$hostPort"
          else
