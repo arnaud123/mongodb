@@ -154,9 +154,9 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 		implement MongoDBKey using std::none
 		
 implementation collectionImpl:
-	self.mongoDB = mongodb::MongoDB(host = host)
-	self.server = mongodb::MongoDBServer(host = host)
-	self.node = mongodb::MongoDBNode(host = mongoDB, server = server)
+	self.mongoDB = mongodb::MongoDB(host = self.host)
+	self.server = mongodb::MongoDBServer(host = self.host)
+	self.node = mongodb::MongoDBNode(host = self.mongoDB, server = self.server)
 end	
 
 implementation hostImp:
