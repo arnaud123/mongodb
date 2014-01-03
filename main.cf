@@ -26,7 +26,7 @@ access1 = mongodb::MongoDBAccessServer(host=mongo2.mongoDB, server= mongo2.serve
 access2 = mongodb::MongoDBAccessServer(host=mongo3.mongoDB, server= mongo3.server, shardCluster = cluster)
 access3 = mongodb::MongoDBAccessServer(host=mongo4.mongoDB, server= mongo4.server, shardCluster = cluster)
 
-config1 = mongodb::MongoDBConfigServer(host=mongo2.mongoDB, server= mongo2Server, shardCluster = cluster)
+config1 = mongodb::MongoDBConfigServer(host=mongo2.mongoDB, server= mongo2.server, shardCluster = cluster)
 
 database1 = mongodb::MongoDBDatabase(name="testdb", shardCluster = cluster)
 collection1 = mongodb::MongoDBCollection(name="testcol", database = database1)
