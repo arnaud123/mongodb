@@ -89,9 +89,9 @@ MongoDBReplicateSet replicateSet [0:1] -- [1:] MongoDBNode nodes
 MongoDBReplicateSet replicateSet [1] -- [1] MongoDBReplicateSetController replicateSetController
 MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode connectingNode
 
-MongoDBNodeWithServer instance [0:1] -- [0:1] MongoDB mongoDB
-MongoDBNodeWithServer instance [0:1] -- [0:1] MongoDBServer server
-MongoDBNodeWithServer instance [0:1] -- [0:1] MongoDBNode node
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDB mongoDB
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBServer server
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
 
 """ SHARDING """
 	""" Access and config """
