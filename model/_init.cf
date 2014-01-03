@@ -129,9 +129,10 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 
 
 """ Implementations """
+	implement MongoDBNodeWithServer using collectionImpl
 	implement MongoDB using hostImp
 	implement MongoDBServer using serverImp
-	implement MongoDBNodeWithServer using collectionImpl
+
 
 	""" Nodes """
 		implement MongoDBNode using nodeImpNonR when isset(self.replicateSet) == true
