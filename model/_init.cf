@@ -155,8 +155,8 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 		
 implementation collectionImpl:
 	mongoDB = mongodb::MongoDB(host = host)
-	server = mongodb::MongoDBServer(host=host)
-	node = mongodb::MongoDBNode(host=mongoDB, server=mongoDBServer)
+	server = mongodb::MongoDBServer(host = host)
+	node = mongodb::MongoDBNode(host = mongoDB, server = server)
 end	
 
 implementation hostImp:
