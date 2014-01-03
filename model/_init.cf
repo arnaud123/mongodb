@@ -83,15 +83,17 @@ entity MongoDBKey:
 	number valueNumber = 0
 end
 
-
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDB mongoDB
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBServer server
+MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
+implement MongoDBNodeWithServer using collectionImpl
+	
 """ REPLICATA """
 MongoDBReplicateSet replicateSet [0:1] -- [1:] MongoDBNode nodes
 MongoDBReplicateSet replicateSet [1] -- [1] MongoDBReplicateSetController replicateSetController
 MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode connectingNode
 
-MongoDBNodeWithServer instance [0:1] -- [1] MongoDB mongoDB
-MongoDBNodeWithServer instance [0:1] -- [1] MongoDBServer server
-MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
+
 
 """ SHARDING """
 	""" Access and config """
@@ -129,7 +131,7 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 
 
 """ Implementations """
-	implement MongoDBNodeWithServer using collectionImpl
+
 	implement MongoDB using hostImp
 	implement MongoDBServer using serverImp
 
