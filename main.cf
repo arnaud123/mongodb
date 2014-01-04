@@ -1,16 +1,14 @@
-vm1 = ip::Host(name = "vmmdb1", os = "fedora-18", ip = "172.16.32.28")
-vm2 = ip::Host(name = "vmmdb2", os = "fedora-18", ip = "172.16.32.30")
-vm3 = ip::Host(name = "vmmdb3", os = "fedora-18", ip = "172.16.32.31")
-vm4 = ip::Host(name = "vmmdb4", os = "fedora-18", ip = "172.16.32.37")
-vm5 = ip::Host(name = "vmmdb5", os = "fedora-18", ip = "172.16.32.4")
-vm6 = ip::Host(name = "vmmdb6", os = "fedora-18", ip = "172.16.32.40")
+vmMDB1 = ip::Host(name = "vmmdb1", os = "fedora-18", ip = "172.16.32.25")
+vmMDB2 = ip::Host(name = "vmmdb2", os = "fedora-18", ip = "172.16.32.28")
+vmMDB3 = ip::Host(name = "vmmdb3", os = "fedora-18", ip = "172.16.32.30")
+vmMDB4 = ip::Host(name = "vmmdb4", os = "fedora-18", ip = "172.16.32.31")
+vmMDB5 = ip::Host(name = "vmmdb5", os = "fedora-18", ip = "172.16.32.32")
 
-mongo1 = mongodb::MongoDBNodeWithServer(host = vm1)
-mongo2 = mongodb::MongoDBNodeWithServer(host = vm2)
-mongo3 = mongodb::MongoDBNodeWithServer(host = vm3)
-mongo4 = mongodb::MongoDBNodeWithServer(host = vm4)
-mongo5 = mongodb::MongoDBNodeWithServer(host = vm5)
-mongo6 = mongodb::MongoDBNodeWithServer(host = vm6)
+mongo1 = mongodb::MongoDBNodeWithServer(host = vmMDB1)
+mongo2 = mongodb::MongoDBNodeWithServer(host = vmMDB2)
+mongo3 = mongodb::MongoDBNodeWithServer(host = vmMDB3)
+mongo4 = mongodb::MongoDBNodeWithServer(host = vmMDB4)
+mongo5 = mongodb::MongoDBNodeWithServer(host = vmMDB5)
 
 
 set1 = mongodb::MongoDBReplicateSet(name="repl1", nodes = [mongo1.node, mongo2.node, mongo3.node])
@@ -19,7 +17,7 @@ set2 = mongodb::MongoDBReplicateSet(name="repl2", nodes = [mongo4.node, mongo5.n
 controller1 = mongodb::MongoDBReplicateSetController(host=mongo1.mongoDB, replicateSet = set1, connectingNode = mongo1.node)
 controller2 = mongodb::MongoDBReplicateSetController(host=mongo4.mongoDB, replicateSet = set2, connectingNode = mongo4.node)
 
-cluster = mongodb::MongoDBShardCluster(replicaSets = [set1, set2], singleNodes = [mongo6.node])
+cluster = mongodb::MongoDBShardCluster(replicaSets = [set1, set2])
 shardController = mongodb::MongoDBShardController(host=mongo5.mongoDB, accessServer = access3, shardCluster = cluster)
 
 access1 = mongodb::MongoDBAccessServer(host=mongo2.mongoDB, server= mongo2.server, shardCluster = cluster)
