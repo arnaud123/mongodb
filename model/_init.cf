@@ -11,14 +11,14 @@ entity MongoDBNode:
 	string port = "27018"
 end
 
-entity MongoDBReplicateSet:
+entity MongoDBReplicaSet:
 	"""
 		This contains a set of database nodes and gives higher availibility 
 	"""
 	string name
 end
 
-entity MongoDBReplicateSetController:
+entity MongoDBReplicaSetController:
 	"""
 		This is the controller of a replica set
 	"""
@@ -89,9 +89,9 @@ MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
 implement MongoDBNodeWithServer using collectionImpl
 	
 """ REPLICATA """
-MongoDBReplicateSet replicateSet [0:1] -- [1:] MongoDBNode nodes
-MongoDBReplicateSet replicateSet [1] -- [1] MongoDBReplicateSetController replicateSetController
-MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode connectingNode
+MongoDBReplicaSet replicaSet [0:1] -- [1:] MongoDBNode nodes
+MongoDBReplicaSet replicaSet [1] -- [1] MongoDBReplicaSetController replicaSetController
+MongoDBReplicaSetController replicaSetController [0:1] -- [1] MongoDBNode connectingNode
 
 
 
@@ -101,7 +101,7 @@ MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode co
 	MongoDBAccessServer accessServers [1:] -- [1] MongoDBShardCluster shardCluster
 
 	""" Nodes """
-	MongoDBShardCluster shardCluster [0:1] -- [0:] MongoDBReplicateSet replicaSets
+	MongoDBShardCluster shardCluster [0:1] -- [0:] MongoDBReplicaSet replicaSets
 	MongoDBShardCluster shardCluster [0:1] -- [0:] MongoDBNode singleNodes 
 	"""Niet aangeraden in productie omgeving weglaten? """
 	
@@ -123,11 +123,11 @@ MongoDBReplicateSetController replicateSetController [0:1] -- [1] MongoDBNode co
 	MongoDB host [1] -- [0:1] MongoDBConfigServer configServer
 	MongoDB host [1] -- [0:1] MongoDBAccessServer accessServer
 	
-	MongoDB host [1] -- [0:1] MongoDBReplicateSetController replicateSetController
+	MongoDB host [1] -- [0:1] MongoDBReplicaSetController replicaSetController
 	MongoDB host [1] -- [0:1] MongoDBShardController shardController
 
 """ip::Host host [1] -- [0:1] MongoDBNode node 
-ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController """
+ip::Host host [1] -- [0:1] MongoDBReplicaSetController replicaSetController """
 
 
 """ Implementations """
@@ -137,12 +137,12 @@ ip::Host host [1] -- [0:1] MongoDBReplicateSetController replicateSetController 
 
 
 	""" Nodes """
-		implement MongoDBNode using nodeImpNonR when isset(self.replicateSet) == true
-		implement MongoDBNode using nodeImpR when isset(self.replicateSet) == false
+		implement MongoDBNode using nodeImpNonR when isset(self.replicaSet) == true
+		implement MongoDBNode using nodeImpR when isset(self.replicaSet) == false
 		
 	""" Set """	
-		implement MongoDBReplicateSet using replicaSetImpl
-		implement MongoDBReplicateSetController using std::none
+		implement MongoDBReplicaSet using replicaSetImpl
+		implement MongoDBReplicaSetController using std::none
 		
 	""" Sharding """
 		implement MongoDBConfigServer using configServerImpl
@@ -195,18 +195,18 @@ end
 
 implementation replicaSetImpl:
 	"""TODO require in orde maken... """
-	scriptConfig = std::ConfigFile(host = replicateSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
+	scriptConfig = std::ConfigFile(host = replicaSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
         	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
-	script = std::File(host = replicateSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
+	script = std::File(host = replicaSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
         	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
-	serviceFile = std::File(host = replicateSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
+	serviceFile = std::File(host = replicaSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
 		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
-	serviceRun = std::Service(host = replicateSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
+	serviceRun = std::Service(host = replicaSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile])
-	serviceRun.requires = std::Package[host = replicateSetController.host.host, name ="mongodb"]  
+	serviceRun.requires = std::Package[host = replicaSetController.host.host, name ="mongodb"]  
 end
 
 implementation configServerImpl:
