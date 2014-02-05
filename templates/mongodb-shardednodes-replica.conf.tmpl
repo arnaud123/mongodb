@@ -1,4 +1,4 @@
 {% for replica in replicaSets -%}
-    {{ replica.name }}:{{ replica.replicateSetController.connectingNode.server.host.ip }}:{{ replica.replicateSetController.connectingNode.port }} {{ '
+    {{ replica.name }}:{{ replica.replicaSetController.connectingNode.server.host.ip }}:{{ replica.replicaSetController.connectingNode.port }} {{ '
 ' }}
 {%- endfor %}
