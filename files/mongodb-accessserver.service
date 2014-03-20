@@ -4,7 +4,7 @@ Description=MongoDB access-server start
 [Service]
 Type=forking
 User=root
-
+PIDFile=/var/run/mongodb/mongodb-accessserver.pid
 ExecStart=/usr/bin/mongodb-accessserver
 
 [Install]

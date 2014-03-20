@@ -6,6 +6,7 @@ Type=forking
 User=root
 
 ExecStart=/usr/bin/mongod --quiet -f /etc/mongodb-configserver.conf
+PIDFile=/var/run/mongodb/mongodb-configserver.pid
 
 [Install]
 WantedBy=multi-user.target
