@@ -7,3 +7,4 @@ configdb = {%for node in shardCluster.configServers -%}
                     {%- endif -%}
             {%- endfor %}
 logpath = /var/log/mongodb/mongodb-access.log
+pidfilepath = /var/run/mongodb/mongodb-accessserver.pid
