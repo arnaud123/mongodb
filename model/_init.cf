@@ -9,6 +9,7 @@ entity MongoDBNode:
 		This is a database node
 	"""
 	string port = "27018"
+	string datadir = "/var/lib/mongodb"
 end
 
 entity MongoDBReplicaSet:
@@ -179,8 +180,10 @@ implementation nodeImpNonR:
         	content = template("mongodb/mongodb-node-single.tmpl"), reload = true)
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
+	datadirCreate = std::Directory(host = host, path = dir, owner = "root", group = "root", mode = 755, reload = true)
+	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
-	serviceRun.requires = [config_cfg]
+	serviceRun.requires = [config_cfg, datadirCreate]
 end
 
 implementation nodeImpR:
@@ -188,8 +191,10 @@ implementation nodeImpR:
        		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
+	datadirCreate = std::Directory(host = host, path = dir, owner = "root", group = "root", mode = 755, reload = true)
+	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
-	serviceRun.requires = [config_cfg]
+	serviceRun.requires = [config_cfg, datadirCreate]
 
 end
 
