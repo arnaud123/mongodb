@@ -180,7 +180,7 @@ implementation nodeImpNonR:
         	content = template("mongodb/mongodb-node-single.tmpl"), reload = true)
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
-	datadirCreate = std::Directory(host = host, path = datadir, owner = "mongod", group = "mongod", mode = 755, reload = true)
+	datadirCreate = std::Directory(host = host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg, datadirCreate]
@@ -191,7 +191,7 @@ implementation nodeImpR:
        		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
-	datadirCreate = std::Directory(host = server.host, path = datadir, owner = "mongod", group = "mongod", mode = 755, reload = true)
+	datadirCreate = std::Directory(host = server.host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg, datadirCreate]
