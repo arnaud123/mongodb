@@ -5,8 +5,8 @@ Description=MongoDB monitoring agent
 Type=forking
 User=root
 
-ExecStart={{dir}}/mongodb-mms-monitoring-agent-script
-PIDFile={{dir}}/monitoring.pid
+ExecStart={{directory}}/mongodb-mms-monitoring-agent-script
+PIDFile={{directory}}/monitoring.pid
 
 [Install]
 WantedBy=multi-user.target
