@@ -324,22 +324,25 @@ implementation shardClusterImpl:
 end
 
 implementation loggingAgent:
+	pkg = 	std::Package(host = host, name = "tar", state = "installed")
+	
     basedir = std::Directory(host = host, path = directory, owner = "root", group = "root", mode = 755, reload = true)
 
-	scriptLogging =  std::File(host = host, path = "{{directory}}/mongodb-mms-monitoring-agent",
-        	content = file("mongodb/mongodb-mongodb-mms-monitoring-agent"), owner="root", group="root", mode=755, reload = true)
-	scriptLogging.requires = basedir
 	
 	configLogging =  std::File(host = host, path = "{{directory}}/monitoring-agent.config",
         	content = template("mongodb/monitoring-agent.config.tmpl"), owner="root", group="root", mode=755, reload = true)
 	configLogging.requires = basedir
+	
+	serviceScript =  std::File(host = host, path = "{{directory}}/mongodb-mms-monitoring-agent-script",
+        	content = template("mongodb/mongodb-mms-monitoring-agent-script.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+	serviceScript.requires = basedir
 	
 	serviceFile = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-mms-monitoring-agent.service", owner = "root",
 		group = "root", mode = 755, content = template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
 	serviceFile.requires = basedir
 	
 	serviceRunCollection = std::Service(host = host, name = "mmongodb-mms-monitoring-agent", state = "running", onboot = true)
-	serviceRunCollection.requires = [scriptLogging, configLogging, serviceFile]
+	serviceRunCollection.requires = [configLogging, serviceFile, serviceScript]
 
 
 end

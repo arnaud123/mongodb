@@ -1,0 +1,21 @@
+#!/bin/bash
+
+cd {{directory}}
+
+FILE="{{directory}}/mongodb-mms-monitoring-agent-script"
+ 
+if [ -f $FILE ];
+then
+   echo "File $FILE exists"
+else
+   echo "File $FILE does not exists"
+   curl -OL https://mms.mongodb.com/download/agent/monitoring/mongodb-mms-monitoring-agent-2.1.0.35-1.linux_x86_64.tar.gz
+   tar -xvf mongodb-mms-monitoring-agent-*
+   rm -f mongodb-mms-monitoring-agent-2.1.0.35-1.linux_x86_64.tar.gz
+   
+   mv mongodb-mms-monitoring-agent-2.1.0.35-1.linux_x86_64/mongodb-mms-monitoring-agent ./ 
+   rm -f -r mongodb-mms-monitoring-agent-2.1.0.35-1.linux_x86_64
+fi
+
+./mongodb-mms-monitoring-agent
+ 
