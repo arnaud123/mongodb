@@ -341,7 +341,7 @@ implementation loggingAgent:
 		group = "root", mode = 755, content = template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
 	serviceFile.requires = basedir
 	
-	serviceRunCollection = std::Service(host = host, name = "mmongodb-mms-monitoring-agent", state = "running", onboot = true)
+	serviceRunCollection = std::Service(host = host, name = "mongodb-mms-monitoring-agent", state = "running", onboot = true)
 	serviceRunCollection.requires = [configLogging, serviceFile, serviceScript]
 
 
