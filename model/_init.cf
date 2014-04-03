@@ -184,12 +184,12 @@ end
 implementation serverImp: 
 	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed", requires = svcIncrease)
 	
-	fileIncrease = std::File(host = host.host, path = "/usr/bin/mongodb-file-increase", content = file("mongodb/mongodb-file-increase"), 
+	fileIncrease = std::File(host = host, path = "/usr/bin/mongodb-file-increase", content = file("mongodb/mongodb-file-increase"), 
                              owner = "root", group = "root", mode = 755)
-    svcFileIncrease = std::File(host = host.host, path = "/lib/systemd/system/mongodb-file-increase.service", 
+    svcFileIncrease = std::File(host = host, path = "/lib/systemd/system/mongodb-file-increase.service", 
                                 content = file("mongodb/mongodb-file-increase.service"), owner = "root", group = "root", mode = 755)
     
-    svcIncrease = std::Service(host = host.host, name = "mongodb-file-increase", state = "running", onboot = true, requires = [fileIncrease, svcFileIncrease])
+    svcIncrease = std::Service(host = host, name = "mongodb-file-increase", state = "running", onboot = true, requires = [fileIncrease, svcFileIncrease])
 	
 end
 
