@@ -120,7 +120,7 @@ MongoDBReplicaSetController replicaSetController [0:1] -- [1] MongoDBNode connec
 	MongoDBDatabase database [1] -- [0:] MongoDBCollection collections
 	MongoDBCollection collection [1] -- [0:] MongoDBKey keys
 	
-	"" Logging ""
+	""" Logging """
 	MongoDBMonitoringAgent agent [0:1] -- [0:1] MongoDBShardCluster shardCluster
 	
 """ Getting all the service connections """
