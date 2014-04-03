@@ -84,6 +84,11 @@ entity MongoDBKey:
 	number valueNumber = 0
 end
 
+entity MongoDBMonitoringAgent extends ip::services::Server:
+	string key
+	string directory = "/root/monitoring"
+end
+
 MongoDBNodeWithServer instance [0:1] -- [1] MongoDB mongoDB
 MongoDBNodeWithServer instance [0:1] -- [1] MongoDBServer server
 MongoDBNodeWithServer instance [0:1] -- [1] MongoDBNode node
@@ -114,6 +119,9 @@ MongoDBReplicaSetController replicaSetController [0:1] -- [1] MongoDBNode connec
 	MongoDBShardCluster shardCluster [1] -- [0:] MongoDBDatabase databases
 	MongoDBDatabase database [1] -- [0:] MongoDBCollection collections
 	MongoDBCollection collection [1] -- [0:] MongoDBKey keys
+	
+	"" Logging ""
+	MongoDBMonitoringAgent agent [0:1] -- [0:1] MongoDBShardCluster shardCluster
 	
 """ Getting all the service connections """
 	MongoDBServer server [1] -- [0:1] MongoDBNode node
@@ -157,6 +165,9 @@ ip::Host host [1] -- [0:1] MongoDBReplicaSetController replicaSetController """
 		implement MongoDBCollection using std::none
 		implement MongoDBKey using std::none
 		
+	""" Logging """
+		implement MongoDBMonitoringAgent using loggingAgent
+		
 implementation collectionImpl:
 	self.mongoDB = mongodb::MongoDB(host = self.host)
 	self.server = mongodb::MongoDBServer(host = self.host)
@@ -191,7 +202,12 @@ implementation nodeImpR:
        		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
-	datadirCreate = std::Directory(host = server.host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreate = std::Directory(host = server.host, path = "{{ datadir }}", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+
+	datadirCreateDB = std::Directory(host = server.host, path = "{{ datadir }}/db", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreateDB.requires = datadirCreate
+	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreateLog.requires = datadirCreate
 	
 	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg, datadirCreate]
@@ -296,5 +312,31 @@ implementation shardClusterImpl:
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
 		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
 	serviceRunCollection.requires = std::Package[host = shardController.host.host, name ="mongodb"]
+	
+		scriptCollectionConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardedcollections.conf",
+        	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
+	
+	
+
 end
 
+implementation loggingAgent:
+    basedir = std::Directory(host = host, path = directory, owner = "root", group = "root", mode = 755, reload = true)
+
+	scriptLogging =  std::File(host = host, path = "{{directory}}/mongodb-mms-monitoring-agent",
+        	content = file("mongodb/mongodb-mongodb-mms-monitoring-agent"), owner="root", group="root", mode=755, reload = true)
+	scriptLogging.requires = basedir
+	
+	configLogging =  std::File(host = host, path = "{{directory}}/monitoring-agent.config",
+        	content = template("mongodb/monitoring-agent.config.tmpl"), owner="root", group="root", mode=755, reload = true)
+	configLogging.requires = basedir
+	
+	serviceFile = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-mms-monitoring-agent.service", owner = "root",
+		group = "root", mode = 755, content = template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
+	serviceFile.requires = basedir
+	
+	serviceRunCollection = std::Service(host = host, name = "mmongodb-mms-monitoring-agent", state = "running", onboot = true)
+	serviceRunCollection.requires = [scriptLogging, configLogging, serviceFile]
+
+
+end
