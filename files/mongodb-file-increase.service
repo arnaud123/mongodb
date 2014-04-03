@@ -1,0 +1,11 @@
+[Unit]
+Description=HBase increase the limit
+
+[Service]
+Type=simple
+User=root
+
+ExecStart=/usr/bin/mongodb-file-increase
+
+[Install]
+WantedBy=multi-user.target
