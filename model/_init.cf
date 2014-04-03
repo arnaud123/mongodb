@@ -319,12 +319,7 @@ implementation shardClusterImpl:
 	
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
 		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
-	serviceRunCollection.requires = std::Package[host = shardController.host.host, name ="mongodb"]
-	
-		scriptCollectionConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardedcollections.conf",
-        	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
-	
-	
+	serviceRunCollection.requires = std::Package[host = shardController.host.host, name ="mongodb"]	
 
 end
 
