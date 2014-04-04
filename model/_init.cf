@@ -208,7 +208,7 @@ implementation nodeImpNonR:
 	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
                              
-	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
+	serviceRun = std::Service(host = server.host, name = "mongodb-dataserver", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg, datadirCreate, repoFile]
 end
 
@@ -227,7 +227,7 @@ implementation nodeImpR:
 	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
 	
-	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
+	serviceRun = std::Service(host = server.host, name = "mongodb-dataserver", state = "running", onboot = true)
 	serviceRun.requires = [config_cfg, datadirCreate, repoFile]
 
 end
