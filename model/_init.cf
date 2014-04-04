@@ -262,7 +262,7 @@ implementation configServerImpl:
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-configserver", state = "running", onboot = true,
 		requires = [scriptConfig, serviceFile, configFile, dataDirectory])
-	serviceRun.requires = std::Package[host = server.host, name ="mongodb-server"]
+	serviceRun.requires = std::Package[host = server.host, name ="mongo-10gen-server"]
 end
 
 implementation accessServerImpl:
