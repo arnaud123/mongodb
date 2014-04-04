@@ -175,14 +175,18 @@ implementation collectionImpl:
 end	
 
 implementation hostImp:
-	pkg = 	std::Package(host = host, name = "mongodb", state = "installed")
+	repoFile = std::File(host = host, path = "/etc/yum.repos.d/mongodb.repo", content = file("mongodb/mongodb.repo"), 
+                             owner = "root", group = "root", mode = 755)
+	pkg = 	std::Package(host = host, name = "mongo-10gen", state = "installed", requires = repoFile)
 	
 	atPkg = 	std::Package(host = host, name = "at", state = "installed")
 	atService = std::Service(host = host, name = "atd", state = "running", onboot = true, requires=atPkg)
 end
 
-implementation serverImp: 
-	pkg2 = 	std::Package(host = host, name = "mongodb-server", state = "installed", requires = svcIncrease)
+implementation serverImp:
+                              
+	pkg2 = 	std::Package(host = host, name = "mongo-10gen-server", state = "installed", requires = svcIncrease)
+	pkg2.requires = std::File[host = host, path = "/etc/yum.repos.d/mongodb.repo"]
 	
 	fileIncrease = std::File(host = host, path = "/usr/bin/mongodb-file-increase", content = file("mongodb/mongodb-file-increase"), 
                              owner = "root", group = "root", mode = 755)
@@ -201,8 +205,11 @@ implementation nodeImpNonR:
 	
 	datadirCreate = std::Directory(host = host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	
-	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
-	serviceRun.requires = [config_cfg, datadirCreate]
+	repoFile = std::File(host = host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
+                             owner = "root", group = "root", mode = 755)
+                             
+	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
+	serviceRun.requires = [config_cfg, datadirCreate, repoFile]
 end
 
 implementation nodeImpR:
@@ -217,8 +224,11 @@ implementation nodeImpR:
 	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	datadirCreateLog.requires = datadirCreate
 	
-	serviceRun = std::Service(host = server.host, name = "mongod", state = "running", onboot = true)
-	serviceRun.requires = [config_cfg, datadirCreate]
+	repoFile = std::File(host = host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
+                             owner = "root", group = "root", mode = 755)
+	
+	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
+	serviceRun.requires = [config_cfg, datadirCreate, repoFile]
 
 end
 
