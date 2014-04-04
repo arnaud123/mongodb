@@ -205,7 +205,7 @@ implementation nodeImpNonR:
 	
 	datadirCreate = std::Directory(host = host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	
-	repoFile = std::File(host = host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
+	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
                              
 	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
@@ -224,7 +224,7 @@ implementation nodeImpR:
 	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
 	datadirCreateLog.requires = datadirCreate
 	
-	repoFile = std::File(host = host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
+	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
 	
 	serviceRun = std::Service(host = server.host, name = "mongod-dataserver", state = "running", onboot = true)
