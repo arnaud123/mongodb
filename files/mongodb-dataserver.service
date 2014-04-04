@@ -4,7 +4,7 @@ After=syslog.target network.target
 
 [Service]
 Type=forking
-User=mongodb
+User=root
 PIDFile=/var/run/mongodb/mongodb.pid
 ExecStart=/usr/bin/mongod --quiet -f /etc/mongodb.conf run
 
