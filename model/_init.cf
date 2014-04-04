@@ -184,9 +184,13 @@ implementation hostImp:
 end
 
 implementation serverImp:
-                              
+    logdir = std::Directory(host = host, path = "/var/run/mongodb/", owner = "root", group = "root", mode = 777, reload = true)
+	pidfilepath = std::Directory(host = host, path = "/var/log/mongodb/", owner = "root", group = "root", mode = 777, reload = true)
+	                          
 	pkg2 = 	std::Package(host = host, name = "mongo-10gen-server", state = "installed", requires = svcIncrease)
 	pkg2.requires = std::File[host = host, path = "/etc/yum.repos.d/mongodb.repo"]
+	pkg2.requires = logdir
+	pkg2.requires = pidfilepath
 	
 	fileIncrease = std::File(host = host, path = "/usr/bin/mongodb-file-increase", content = file("mongodb/mongodb-file-increase"), 
                              owner = "root", group = "root", mode = 755)
@@ -195,6 +199,7 @@ implementation serverImp:
     
     svcIncrease = std::Service(host = host, name = "mongodb-file-increase", state = "running", onboot = true, requires = [fileIncrease, svcFileIncrease])
 	
+
 end
 
 
