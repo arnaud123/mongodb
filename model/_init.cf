@@ -352,7 +352,7 @@ implementation loggingAgent:
         	content = template("mongodb/mongodb-mms-monitoring-agent-script.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	serviceScript.requires = basedir
 	
-	serviceFile = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-mms-monitoring-agent.service", owner = "root",
+	serviceFile = std::File(host = host, path = "/lib/systemd/system/mongodb-mms-monitoring-agent.service", owner = "root",
 		group = "root", mode = 755, content = template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
 	serviceFile.requires = basedir
 	
