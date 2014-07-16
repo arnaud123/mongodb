@@ -208,7 +208,7 @@ implementation nodeImpNonR:
         	content = template("mongodb/mongodb-node-single.tmpl"), reload = true)
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
 	
-	datadirCreate = std::Directory(host = host, path = datadir, owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreate = std::Directory(host = host, path = datadir, owner = "root", group = "root", mode = 755, reload = true)
 	
 	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
@@ -222,11 +222,11 @@ implementation nodeImpR:
        		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
 	config_cfg.requires=std::Package[host = server.host, name ="mongo-10gen-server"]  
 	
-	datadirCreate = std::Directory(host = server.host, path = "{{ datadir }}", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreate = std::Directory(host = server.host, path = "{{ datadir }}", owner = "root", group = "root", mode = 755, reload = true)
 
-	datadirCreateDB = std::Directory(host = server.host, path = "{{ datadir }}/db", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreateDB = std::Directory(host = server.host, path = "{{ datadir }}/db", owner = "root", group = "root", mode = 755, reload = true)
 	datadirCreateDB.requires = datadirCreate
-	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "mongodb", group = "mongodb", mode = 755, reload = true)
+	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "root", group = "root", mode = 755, reload = true)
 	datadirCreateLog.requires = datadirCreate
 	
 	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
