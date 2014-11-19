@@ -14,3 +14,26 @@ else
     echo "Content now added"
     echo "$extraContent" >> /etc/security/limits.conf
 fi
+
+pamContent="session required pam_limits.so"
+
+if grep -F -q "$pamContent" /etc/pam.d/login
+then
+    echo "Content already included"
+
+else
+    echo "Content now added"
+    echo "$pamContent" >> /etc/pam.d/login
+fi
+
+bashRcContent="ulimit -n 60000"
+
+if grep -F -q "$bashRcContent" /root/.bashrc
+then
+    echo "Content already included"
+
+else
+    echo "Content now added"
+    echo "$bashRcContent" >> /root/.bashrc
+fi
+
