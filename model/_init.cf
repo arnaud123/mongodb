@@ -146,8 +146,8 @@ ip::Host host [1] -- [0:1] MongoDBReplicaSetController replicaSetController """
 
 
 	""" Nodes """
-		implement MongoDBNode using nodeImpNonR when isset(self.replicaSet) == true
-		implement MongoDBNode using nodeImpR when isset(self.replicaSet) == false
+		"""TODO: fix implement MongoDBNode using nodeImpNonR when isset(self.replicaSet) == true"""
+		implement MongoDBNode using nodeImpR """when isset(self.replicaSet) == false"""
 		
 	""" Set """	
 		implement MongoDBReplicaSet using replicaSetImpl
@@ -174,8 +174,8 @@ implementation collectionImpl:
 	self.node = mongodb::MongoDBNode(host = self.mongoDB, server = self.server)
 end	
 
-implementation hostImp:
-	repoFile = std::File(host = host, path = "/etc/yum.repos.d/mongodb.repo", content = file("mongodb/mongodb.repo"), 
+implementation hostImp for MongoDB:
+	repoFile = std::File(host = host, path = "/etc/yum.repos.d/mongodb.repo", content = std::source("mongodb/mongodb.repo"), 
                              owner = "root", group = "root", mode = 755)
 	pkg = 	std::Package(host = host, name = "mongo-10gen", state = "installed", requires = repoFile)
 	
@@ -183,7 +183,7 @@ implementation hostImp:
 	atService = std::Service(host = host, name = "atd", state = "running", onboot = true, requires=atPkg)
 end
 
-implementation serverImp:
+implementation serverImp for MongoDBServer:
     logdir = std::Directory(host = host, path = "/var/run/mongodb/", owner = "root", group = "root", mode = 777, reload = true)
 	pidfilepath = std::Directory(host = host, path = "/var/log/mongodb/", owner = "root", group = "root", mode = 777, reload = true)
 	                          
@@ -192,10 +192,10 @@ implementation serverImp:
 	pkg2.requires = logdir
 	pkg2.requires = pidfilepath
 	
-	fileIncrease = std::File(host = host, path = "/usr/bin/mongodb-file-increase", content = file("mongodb/mongodb-file-increase"), 
+	fileIncrease = std::File(host = host, path = "/usr/bin/mongodb-file-increase", content = std::source("mongodb/mongodb-file-increase"), 
                              owner = "root", group = "root", mode = 755)
     svcFileIncrease = std::File(host = host, path = "/lib/systemd/system/mongodb-file-increase.service", 
-                                content = file("mongodb/mongodb-file-increase.service"), owner = "root", group = "root", mode = 755)
+                                content = std::source("mongodb/mongodb-file-increase.service"), owner = "root", group = "root", mode = 755)
     
     svcIncrease = std::Service(host = host, name = "mongodb-file-increase", state = "running", onboot = true, requires = [fileIncrease, svcFileIncrease])
 	
@@ -203,7 +203,7 @@ implementation serverImp:
 end
 
 
-implementation nodeImpNonR:
+implementation nodeImpNonR for MongoDBNode:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
         	content = template("mongodb/mongodb-node-single.tmpl"), reload = true)
 	config_cfg.requires=std::Package[host = server.host, name ="mongodb-server"]  
@@ -217,9 +217,9 @@ implementation nodeImpNonR:
 	serviceRun.requires = [config_cfg, datadirCreate, repoFile]
 end
 
-implementation nodeImpR:
+implementation nodeImpR for MongoDBNode:
 	config_cfg = std::ConfigFile(host = server.host, path = "/etc/mongodb.conf",
-       		content = template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
+       		content = std::template("mongodb/mongodb-node-replica.tmpl"), reload = true)   
 	config_cfg.requires=std::Package[host = server.host, name ="mongo-10gen-server"]  
 	
 	datadirCreate = std::Directory(host = server.host, path = "{{ datadir }}", owner = "root", group = "root", mode = 755, reload = true)
@@ -229,7 +229,7 @@ implementation nodeImpR:
 	datadirCreateLog = std::Directory(host = server.host, path = "{{ datadir }}/log", owner = "root", group = "root", mode = 755, reload = true)
 	datadirCreateLog.requires = datadirCreate
 	
-	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = file("mongodb/mongodb-dataserver.service"), 
+	repoFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-dataserver.service", content = std::file("mongodb/mongodb-dataserver.service"), 
                              owner = "root", group = "root", mode = 755)
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-dataserver", state = "running", onboot = true)
@@ -240,28 +240,28 @@ end
 implementation replicaSetImpl:
 	"""TODO require in orde maken... """
 	scriptConfig = std::ConfigFile(host = replicaSetController.host.host, path = "/etc/mongodb-replicanodes.conf",
-        	content = template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-replicanodes.conf.tmpl"), reload = true)
 	
 	script = std::File(host = replicaSetController.host.host, path = "/usr/bin/mongodb-replicanodes",
-        	content = template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/mongodb-replicanodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = replicaSetController.host.host, path = "/lib/systemd/system/mongodb-replicanodes.service", owner = "root",
-		group = "root", mode = 755, requires = script, content = file("mongodb/mongodb-replicanodes.service"), reload = true)
+		group = "root", mode = 755, requires = script, content = std::file("mongodb/mongodb-replicanodes.service"), reload = true)
 	
 	serviceRun = std::Service(host = replicaSetController.host.host, name = "mongodb-replicanodes", state = "running", onboot = true,
 		requires = [scriptConfig, script, serviceFile])
 	serviceRun.requires = std::Package[host = replicaSetController.host.host, name ="mongo-10gen"]  
 end
 
-implementation configServerImpl:
+implementation configServerImpl for MongoDBConfigServer:
 	scriptConfig = std::File(host = server.host, path = "/usr/bin/mongodb-configserver",
-        	content = file("mongodb/mongodb-configserver"), owner="root", group="root", mode=755, reload = true)
+        	content = std::file("mongodb/mongodb-configserver"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-configserver.service", owner = "root",
-		group = "root", mode = 755, content = file("mongodb/mongodb-configserver.service"), reload = true)
+		group = "root", mode = 755, content = std::file("mongodb/mongodb-configserver.service"), reload = true)
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-configserver.conf",
-        	content = template("mongodb/mongodb-configserver.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-configserver.tmpl"), reload = true)
 	
 	dataDirectory = std::Directory(host = server.host, path = "/var/log/mongodbconfig", owner="root", group="root", mode = 755)
 	
@@ -270,16 +270,16 @@ implementation configServerImpl:
 	serviceRun.requires = std::Package[host = server.host, name ="mongo-10gen-server"]
 end
 
-implementation accessServerImpl:
+implementation accessServerImpl for MongoDBAccessServer:
 	"""TODO require in orde maken... """
 	scriptConfig = std::File(host = server.host, path = "/usr/bin/mongodb-accessserver",
-        	content = file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=755, reload = true)
+        	content = std::file("mongodb/mongodb-accessserver"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFile = std::File(host = server.host, path = "/lib/systemd/system/mongodb-accessserver.service", owner = "root",
-		group = "root", mode = 755, content = file("mongodb/mongodb-accessserver.service"), reload = true)
+		group = "root", mode = 755, content = std::file("mongodb/mongodb-accessserver.service"), reload = true)
 	
 	configFile =  std::ConfigFile(host = server.host, path = "/etc/mongodb-accessserver.conf",
-        	content = template("mongodb/mongodb-accessserver.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-accessserver.tmpl"), reload = true)
 	
 	serviceRun = std::Service(host = server.host, name = "mongodb-accessserver", state = "running", onboot = true,
 		requires = [configFile, scriptConfig, serviceFile])
@@ -288,18 +288,18 @@ implementation accessServerImpl:
 
 end
 
-implementation shardClusterImpl:
+implementation shardClusterImpl for MongoDBShardCluster:
 	scriptNodesConfigSingle = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-single.conf",
-        	content = template("mongodb/mongodb-shardednodes-single.conf.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-shardednodes-single.conf.tmpl"), reload = true)
 	
 	scriptNodesConfigReplica = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardednodes-replica.conf",
-        	content = template("mongodb/mongodb-shardednodes-replica.conf.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-shardednodes-replica.conf.tmpl"), reload = true)
 	
 	scriptNodes = std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardednodes",
-        	content = template("mongodb/mongodb-shardednodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/mongodb-shardednodes.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileNodes = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardednodes.service", owner = "root",
-		group = "root", mode = 755, content = file("mongodb/mongodb-shardednodes.service"), reload = true)
+		group = "root", mode = 755, content = std::file("mongodb/mongodb-shardednodes.service"), reload = true)
 	
 	serviceRunNodes = std::Service(host = shardController.host.host, name = "mongodb-shardednodes", state = "running", onboot = true,
 		requires = [scriptNodesConfigSingle, scriptNodesConfigReplica, scriptNodes, serviceFileNodes])
@@ -309,13 +309,13 @@ implementation shardClusterImpl:
 	
 	
 	scriptDatabaseConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardeddatabases.conf",
-        	content = template("mongodb/mongodb-shardeddatabases.conf.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-shardeddatabases.conf.tmpl"), reload = true)
 	
 	scriptDatabase =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardeddatabases",
-        	content = template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/mongodb-shardeddatabases.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileDatabase = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardeddatabases.service", owner = "root",
-		group = "root", mode = 755, content = file("mongodb/mongodb-shardeddatabases.service"), reload = true)
+		group = "root", mode = 755, content = std::file("mongodb/mongodb-shardeddatabases.service"), reload = true)
 	
 	serviceRunDatabase = std::Service(host = shardController.host.host, name = "mongodb-shardeddatabases", state = "running", onboot = true,
 		requires = [scriptDatabaseConfig, scriptDatabase, serviceFileDatabase])
@@ -324,13 +324,13 @@ implementation shardClusterImpl:
 	
 	
 	scriptCollectionConfig = std::ConfigFile(host = shardController.host.host, path = "/etc/mongodb-shardedcollections.conf",
-        	content = template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
+        	content = std::template("mongodb/mongodb-shardedcollections.conf.tmpl"), reload = true)
 	
 	scriptCollection =  std::File(host = shardController.host.host, path = "/usr/bin/mongodb-shardedcollections",
-        	content = template("mongodb/mongodb-shardedcollections.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/mongodb-shardedcollections.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	
 	serviceFileCollection = std::File(host = shardController.host.host, path = "/lib/systemd/system/mongodb-shardedcollections.service", owner = "root",
-		group = "root", mode = 755, content = file("mongodb/mongodb-shardedcollections.service"), reload = true)
+		group = "root", mode = 755, content = std::file("mongodb/mongodb-shardedcollections.service"), reload = true)
 	
 	serviceRunCollection = std::Service(host = shardController.host.host, name = "mongodb-shardedcollections", state = "running", onboot = true,
 		requires = [scriptCollectionConfig, scriptCollection, serviceFileCollection, serviceRunDatabase, serviceRunNodes])
@@ -338,22 +338,22 @@ implementation shardClusterImpl:
 
 end
 
-implementation loggingAgent:
+implementation loggingAgent for MongoDBMonitoringAgent:
 	pkg = 	std::Package(host = host, name = "tar", state = "installed")
 	
     basedir = std::Directory(host = host, path = directory, owner = "root", group = "root", mode = 755, reload = true)
 
 	
 	configLogging =  std::File(host = host, path = "{{directory}}/monitoring-agent.config",
-        	content = template("mongodb/monitoring-agent.config.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/monitoring-agent.config.tmpl"), owner="root", group="root", mode=755, reload = true)
 	configLogging.requires = basedir
 	
 	serviceScript =  std::File(host = host, path = "{{directory}}/mongodb-mms-monitoring-agent-script",
-        	content = template("mongodb/mongodb-mms-monitoring-agent-script.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
+        	content = std::template("mongodb/mongodb-mms-monitoring-agent-script.sh.tmpl"), owner="root", group="root", mode=755, reload = true)
 	serviceScript.requires = basedir
 	
 	serviceFile = std::File(host = host, path = "/lib/systemd/system/mongodb-mms-monitoring-agent.service", owner = "root",
-		group = "root", mode = 755, content = template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
+		group = "root", mode = 755, content = std::template("mongodb/mongodb-mms-monitoring-agent.service.tmpl"), reload = true)
 	serviceFile.requires = basedir
 	
 	serviceRunCollection = std::Service(host = host, name = "mongodb-mms-monitoring-agent", state = "running", onboot = true)

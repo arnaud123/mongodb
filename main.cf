@@ -1,9 +1,9 @@
-vmMDB1 = ip::Host(name = "vmmdb1", os = "fedora-18", ip = "172.16.32.45")
-vmMDB2 = ip::Host(name = "vmmdb2", os = "fedora-18", ip = "172.16.32.46")
-vmMDB3 = ip::Host(name = "vmmdb3", os = "fedora-18", ip = "172.16.32.47")
-vmMDB4 = ip::Host(name = "vmmdb4", os = "fedora-18", ip = "172.16.32.48")
-vmMDB5 = ip::Host(name = "vmmdb5", os = "fedora-18", ip = "172.16.32.49")
-vmMDB6 = ip::Host(name = "vmmdb6", os = "fedora-18", ip = "172.16.32.50")
+vmMDB1 = ip::Host(name = "vm1", os = redhat::fedora20, ip = "172.16.8.139")
+vmMDB2 = ip::Host(name = "vm2", os = redhat::fedora20, ip = "172.16.8.140")
+vmMDB3 = ip::Host(name = "vm3", os = redhat::fedora20, ip = "172.16.8.141")
+vmMDB4 = ip::Host(name = "vm4", os = redhat::fedora20, ip = "172.16.8.142")
+vmMDB5 = ip::Host(name = "vm5", os = redhat::fedora20, ip = "172.16.8.143")
+vmMDB6 = ip::Host(name = "vm6", os = redhat::fedora20, ip = "172.16.8.145")
 
 mongo1 = mongodb::MongoDB(host = vmMDB1)
 mongo2 = mongodb::MongoDB(host = vmMDB2)
@@ -33,12 +33,11 @@ controller1 = mongodb::MongoDBReplicaSetController(host=mongo1, replicaSet = set
 controller2 = mongodb::MongoDBReplicaSetController(host=mongo4, replicaSet = set2, connectingNode = mongoN4)
 
 mongoDBCluster = mongodb::MongoDBShardCluster(replicaSets = [set1, set2])
-shardController = mongodb::MongoDBShardController(host=mongo5, accessServer = access3, shardCluster = mongoDBCluster)
+shardController = mongodb::MongoDBShardController(host=mongo5, accessServer = access1, shardCluster = mongoDBCluster)
 
-access1 = mongodb::MongoDBAccessServer(host=mongo2, server= mongo2Server, shardCluster = mongoDBCluster)
-access2 = mongodb::MongoDBAccessServer(host=mongo3, server= mongo3Server, shardCluster = mongoDBCluster)
+access1 = mongodb::MongoDBAccessServer(host=mongo1, server= mongo1Server, shardCluster = mongoDBCluster)
 
-config1 = mongodb::MongoDBConfigServer(host=mongo2, server= mongo2Server, shardCluster = mongoDBCluster)
+config1 = mongodb::MongoDBConfigServer(host=mongo1, server= mongo1Server, shardCluster = mongoDBCluster)
 
 databaseYCSB = mongodb::MongoDBDatabase(name="ycsb", shardCluster = mongoDBCluster)
 collectionYCSB = mongodb::MongoDBCollection(name="usertable", database = databaseYCSB)

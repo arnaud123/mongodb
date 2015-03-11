@@ -1,0 +1,12 @@
+name: mongodb
+modulepath: libs
+downloadpath: libs
+description: deploy mongodb cluster
+requires:
+    std: git@github.com:impera-io/std, ">= 0.1"
+    net: git@github.com:impera-io/net, ">= 0.1"
+    ip: git@github.com:impera-io/ip, ">= 0.1"
+    redhat: git@github.com:impera-io/redhat, ">= 0.1"
+    hosts: git@github.com:impera-io/hosts, ">= 0.1"
+    yum: git@github.com:impera-io/yum, ">= 0.1"
+    mongodb: git@github.com:arnaudsjs/mongodb, ">= 0.1"
