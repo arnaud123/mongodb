@@ -8,4 +8,4 @@ configdb = {%for node in shardCluster.configServers -%}
             {%- endfor %}
 logpath = /var/log/mongodb/mongodb-access.log
 pidfilepath = /var/run/mongodb/mongodb-accessserver.pid
-maxConns=200000
+maxConns=20000
