@@ -8,5 +8,7 @@ User=root
 PIDFile=/var/run/mongodb/mongodb.pid
 ExecStart=/usr/bin/mongod --quiet -f /etc/mongodb.conf run
 
+LimitNOFILE=unlimited
+
 [Install]
 WantedBy=multi-user.target

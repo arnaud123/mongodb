@@ -7,5 +7,7 @@ User=root
 PIDFile=/var/run/mongodb/mongodb-accessserver.pid
 ExecStart=/usr/bin/mongodb-accessserver
 
+LimitNOFILE=unlimited
+
 [Install]
 WantedBy=multi-user.target
