@@ -1,39 +1,31 @@
-vmMDB1 = ip::Host(name = "vm1", os = redhat::fedora20, ip = "172.16.8.139")
-vmMDB2 = ip::Host(name = "vm2", os = redhat::fedora20, ip = "172.16.8.140")
-vmMDB3 = ip::Host(name = "vm3", os = redhat::fedora20, ip = "172.16.8.141")
-vmMDB4 = ip::Host(name = "vm4", os = redhat::fedora20, ip = "172.16.8.142")
-vmMDB5 = ip::Host(name = "vm5", os = redhat::fedora20, ip = "172.16.8.143")
-vmMDB6 = ip::Host(name = "vm6", os = redhat::fedora20, ip = "172.16.8.145")
+vmMDB1 = ip::Host(name = "db-1", os = redhat::fedora20, ip = "172.17.8.106")
+vmMDB2 = ip::Host(name = "db-2", os = redhat::fedora20, ip = "172.17.8.107")
+vmMDB3 = ip::Host(name = "db-3", os = redhat::fedora20, ip = "172.17.8.105")
+vmMDB4 = ip::Host(name = "db-4", os = redhat::fedora20, ip = "172.17.8.108")
 
 mongo1 = mongodb::MongoDB(host = vmMDB1)
 mongo2 = mongodb::MongoDB(host = vmMDB2)
 mongo3 = mongodb::MongoDB(host = vmMDB3)
 mongo4 = mongodb::MongoDB(host = vmMDB4)
-mongo5 = mongodb::MongoDB(host = vmMDB5)
-mongo6 = mongodb::MongoDB(host = vmMDB6)
 
 mongo1Server = mongodb::MongoDBServer(host=vmMDB1)
 mongo2Server = mongodb::MongoDBServer(host=vmMDB2)
 mongo3Server = mongodb::MongoDBServer(host=vmMDB3)
 mongo4Server = mongodb::MongoDBServer(host=vmMDB4)
-mongo5Server = mongodb::MongoDBServer(host=vmMDB5)
-mongo6Server = mongodb::MongoDBServer(host=vmMDB6)
 
 mongoN1 = mongodb::MongoDBNode(host=mongo1, server=mongo1Server)
 mongoN2 = mongodb::MongoDBNode(host=mongo2, server=mongo2Server)
 mongoN3 = mongodb::MongoDBNode(host=mongo3, server=mongo3Server)
 mongoN4 = mongodb::MongoDBNode(host=mongo4, server=mongo4Server)
-mongoN5 = mongodb::MongoDBNode(host=mongo5, server=mongo5Server)
-mongoN6 = mongodb::MongoDBNode(host=mongo6, server=mongo6Server)
 
-set1 = mongodb::MongoDBReplicaSet(name="repl1", nodes = [mongoN1, mongoN2, mongoN3])
-set2 = mongodb::MongoDBReplicaSet(name="repl2", nodes = [mongoN4, mongoN5, mongoN6])
+set1 = mongodb::MongoDBReplicaSet(name="repl1", nodes = [mongoN1, mongoN2])
+set2 = mongodb::MongoDBReplicaSet(name="repl2", nodes = [mongoN3, mongoN4])
 
 controller1 = mongodb::MongoDBReplicaSetController(host=mongo1, replicaSet = set1, connectingNode = mongoN1)
-controller2 = mongodb::MongoDBReplicaSetController(host=mongo4, replicaSet = set2, connectingNode = mongoN4)
+controller2 = mongodb::MongoDBReplicaSetController(host=mongo3, replicaSet = set2, connectingNode = mongoN3)
 
 mongoDBCluster = mongodb::MongoDBShardCluster(replicaSets = [set1, set2])
-shardController = mongodb::MongoDBShardController(host=mongo5, accessServer = access1, shardCluster = mongoDBCluster)
+shardController = mongodb::MongoDBShardController(host=mongo3, accessServer = access1, shardCluster = mongoDBCluster)
 
 access1 = mongodb::MongoDBAccessServer(host=mongo1, server= mongo1Server, shardCluster = mongoDBCluster)
 
